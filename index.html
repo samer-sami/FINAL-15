@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Dashboard - Final Version</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 0;
+        }
+
+        .container {
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        .tradingview-widget-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .watermark-container {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: Arial, sans-serif;
+        }
+
+        .watermark {
+            font-size: 12px;
+            font-weight: 900;
+            color: #000000;
+            opacity: 0.8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .watermark-emoji {
+            font-size: 14px;
+        }
+
+        .timeframe-selector {
+            display: flex;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 400;
+            color: #666666;
+        }
+
+        .timeframe {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+        }
+
+        .timeframe:hover {
+            background-color: #e0e0e0;
+        }
+
+        .timeframe.active {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-popup {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            background-color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: grid;
+            grid-template-columns: 50% 50%;
+            grid-template-rows: 100%;
+        }
+
+        .modal-left {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .modal-right {
+            display: grid;
+            grid-template-rows: 50% 50%;
+        }
+
+        .modal-right-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+
+        .modal-right-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.5);
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-chart-wrapper {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Ultra Slim Sidebar Handles - Design 5 */
+        .handles-container {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(44, 62, 80, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px 0 0 8px;
+            padding: 10px 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: -3px 3px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+        }
+
+        .sidebar-handle {
+            color: #bdc3c7;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .sidebar-handle:hover {
+            color: white;
+            background: rgba(102, 126, 234, 0.4);
+            transform: scale(1.1);
+        }
+
+        .sidebar-handle.active {
+            background: #27ae60;
+            color: white;
+        }
+
+        .sidebar-handle::after {
+            content: attr(data-label);
+            position: absolute;
+            right: calc(100% + 20px);
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .sidebar-handle:hover::after {
+            opacity: 1;
+            right: calc(100% + 25px);
+        }
+
+        .handles-separator {
+            height: 1px;
+            background: rgba(189, 195, 199, 0.3);
+            margin: 5px 0;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            right: -75%;
+            top: 0;
+            width: 75%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 9997;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: right 0.3s ease;
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-content {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Calendar Sidebar - 25% Top / 75% Bottom */
+        .calendar-sidebar-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-top {
+            height: 25%;
+            background-color: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            padding: 10px 15px;
+            overflow: hidden;
+        }
+
+        .calendar-bottom {
+            height: 75%;
+            background-color: #ffffff;
+            overflow-y: auto;
+        }
+
+        /* Trading Sessions Styles */
+        .trading-sessions-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sessions-header {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .current-time-display {
+            font-size: 16px;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        .sessions-timeline {
+            flex: 1;
+            position: relative;
+            background-color: white;
+            border: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .time-ruler-section {
+            display: flex;
+            border-bottom: 1px solid #e1e4e8;
+            background-color: #fafafa;
+            padding: 4px 0;
+        }
+
+        .ruler-spacer {
+            width: 180px;
+            flex-shrink: 0;
+            border-right: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .time-ruler {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            position: relative;
+        }
+
+        .time-label {
+            font-size: 8px;
+            color: #666;
+            font-weight: 600;
+            text-align: left;
+            padding-left: 2px;
+            position: relative;
+        }
+
+        .time-label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -4px;
+            bottom: -4px;
+            width: 1px;
+            background-color: #ddd;
+        }
+
+        .sessions-bars {
+            position: relative;
+            flex: 1;
+            padding: 5px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .session-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            position: relative;
+            height: 24px;
+            flex: 1;
+        }
+
+        .session-info {
+            width: 180px;
+            flex-shrink: 0;
+            border-right: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .session-city-name {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .session-city-time {
+            font-size: 10px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .session-bar-container {
+            flex: 1;
+            height: 20px;
+            position: relative;
+            background-color: #f8f9fa;
+        }
+
+        .session-bar {
+            position: absolute;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            font-size: 9px;
+            font-weight: 600;
+            color: rgba(0,0,0,0.7);
+            justify-content: center;
+            background-color: #bdbdbd;
+            border: 1px solid #999;
+        }
+
+        .session-bar.active {
+            background-color: #42a5f5;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .time-indicator-container {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 180px;
+            right: 0;
+            pointer-events: none;
+        }
+
+        .time-indicator {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #4caf50;
+            z-index: 100;
+            transition: left 0.5s linear;
+        }
+
+        .time-indicator::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -3px;
+            width: 8px;
+            height: 8px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        /* News Feed Styles */
+        .news-controls {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e1e4e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .news-left-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .news-refresh-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .news-refresh-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .font-controls {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .font-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .font-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .news-stats {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .news-briefing {
+            background-color: #fff8dc;
+            border-left: 4px solid #ffa500;
+            padding: 10px 15px;
+            margin: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            flex-shrink: 0;
+        }
+
+        .news-list {
+            padding: 0 15px 15px 15px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .news-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #e1e4e8;
+            transition: background-color 0.2s;
+        }
+
+        .news-item.new-item {
+            animation: highlight 2s ease-out;
+        }
+
+        @keyframes highlight {
+            from { background-color: #90EE90; }
+            to { background-color: transparent; }
+        }
+
+        .news-item:hover {
+            background-color: #f6f8fa;
+        }
+
+        .news-time {
+            font-size: var(--time-font-size, 12px);
+            color: #666;
+            min-width: 60px;
+            margin-right: 12px;
+            font-weight: 500;
+        }
+
+        .news-source {
+            min-width: 25px;
+            margin-right: 10px;
+            font-size: var(--source-font-size, 11px);
+            font-weight: 600;
+            color: #0969da;
+        }
+
+        .news-content {
+            flex: 1;
+        }
+
+        .news-title a {
+            color: #0969da;
+            text-decoration: none;
+            font-size: var(--title-font-size, 14px);
+            line-height: 1.5;
+            font-weight: 700;
+        }
+
+        .news-title a:hover {
+            text-decoration: underline;
+        }
+
+        .news-description {
+            color: #666;
+            font-size: var(--desc-font-size, 12px);
+            line-height: 1.4;
+            margin-top: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Container 1 -->
+    <div class="container" data-container-id="1">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-1">
+                <span class="watermark-emoji">🇪🇺</span> <span class="pair-name">EURUSD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '1')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '1')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '1')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-1" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 2 -->
+    <div class="container" data-container-id="2">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-2">
+                <span class="watermark-emoji">🇬🇧</span> <span class="pair-name">GBPUSD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '2')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '2')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '2')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-2" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 3 -->
+    <div class="container" data-container-id="3">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-3">
+                <span class="watermark-emoji">🇯🇵</span> <span class="pair-name">USDJPY</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '3')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '3')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '3')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-3" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 4 -->
+    <div class="container" data-container-id="4">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-4">
+                <span class="watermark-emoji">🇨🇭</span> <span class="pair-name">USDCHF</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '4')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '4')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '4')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-4" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 5 -->
+    <div class="container" data-container-id="5">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-5">
+                <span class="watermark-emoji">🇨🇦</span> <span class="pair-name">USDCAD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '5')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '5')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '5')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-5" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 6 -->
+    <div class="container" data-container-id="6">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-6">
+                <span class="watermark-emoji">🇦🇺</span> <span class="pair-name">AUDUSD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '6')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '6')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '6')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-6" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 7 -->
+    <div class="container" data-container-id="7">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-7">
+                <span class="watermark-emoji">🇳🇿</span> <span class="pair-name">NZDUSD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '7')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '7')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '7')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-7" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 8 -->
+    <div class="container" data-container-id="8">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-8">
+                <span class="watermark-emoji">🥇</span> <span class="pair-name">XAUUSD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '8')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '8')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '8')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-8" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 9 -->
+    <div class="container" data-container-id="9">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-9">
+                <span class="watermark-emoji">₿</span> <span class="pair-name">BTCUSD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '9')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '9')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '9')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-9" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 10 -->
+    <div class="container" data-container-id="10">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-10">
+                <span class="watermark-emoji">🛢️</span> <span class="pair-name">WTIUSD</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '10')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '10')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '10')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-10" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 11 -->
+    <div class="container" data-container-id="11">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-11">
+                <span class="watermark-emoji">📈</span> <span class="pair-name">S&P500</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '11')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '11')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '11')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-11" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Container 12 -->
+    <div class="container" data-container-id="12">
+        <div class="watermark-container">
+            <div class="watermark" id="watermark-12">
+                <span class="watermark-emoji">💵</span> <span class="pair-name">DXY</span>
+            </div>
+            <div class="timeframe-selector">
+                <span class="timeframe active" data-interval="15" onclick="changeTimeframe(event, '12')">15</span>
+                <span class="timeframe" data-interval="60" onclick="changeTimeframe(event, '12')">60</span>
+                <span class="timeframe" data-interval="240" onclick="changeTimeframe(event, '12')">240</span>
+            </div>
+        </div>
+        <div id="chart-container-12" class="tradingview-widget-container" style="height:100%;width:100%"></div>
+    </div>
+
+    <!-- Modal Popup -->
+    <div id="modal-overlay" class="modal-overlay" onclick="toggleModal()">
+        <div class="modal-popup" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="toggleModal()">&times;</span>
+            <div class="modal-left">
+                <div id="chart-wrapper-15" class="modal-chart-wrapper"></div>
+            </div>
+            <div class="modal-right">
+                <div class="modal-right-top">
+                    <div id="chart-wrapper-60" class="modal-chart-wrapper"></div>
+                </div>
+                <div class="modal-right-bottom">
+                    <div id="chart-wrapper-240" class="modal-chart-wrapper"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ultra Slim Sidebar Handles -->
+    <div class="handles-container">
+        <div class="sidebar-handle" data-label="Calendar" onclick="toggleSidebar('calendar')">📅</div>
+        <div class="sidebar-handle" data-label="News" onclick="toggleSidebar('news')">📰</div>
+        <div class="sidebar-handle" data-label="Crosses" id="crosses-handle" onclick="toggleCrosses()">💱</div>
+        <div class="handles-separator"></div>
+        <div class="sidebar-handle active" data-label="15 Minutes" id="tf-15" onclick="changeAllTimeframes('15')">15</div>
+        <div class="sidebar-handle" data-label="60 Minutes" id="tf-60" onclick="changeAllTimeframes('60')">60</div>
+        <div class="sidebar-handle" data-label="240 Minutes" id="tf-240" onclick="changeAllTimeframes('240')">240</div>
+    </div>
+
+    <!-- Calendar Sidebar -->
+    <div id="calendar-sidebar" class="sidebar">
+        <div class="calendar-sidebar-content">
+            <div class="calendar-top">
+                <div class="trading-sessions-container">
+                    <div class="sessions-header">
+                        <div class="current-time-display" id="current-time-display">--:--</div>
+                    </div>
+                    <div class="sessions-timeline">
+                        <div class="time-ruler-section">
+                            <div class="ruler-spacer">City / Local Time</div>
+                            <div class="time-ruler" id="time-ruler">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div class="sessions-bars" id="sessions-bars">
+                            <div class="session-row">
+                                <div class="session-info">
+                                    <div class="session-city-name">Sydney</div>
+                                    <div class="session-city-time" id="sydney-time">--:--</div>
+                                </div>
+                                <div class="session-bar-container">
+                                    <div class="session-bar" id="sydney-bar">12am-9am</div>
+                                </div>
+                            </div>
+                            <div class="session-row">
+                                <div class="session-info">
+                                    <div class="session-city-name">Tokyo</div>
+                                    <div class="session-city-time" id="tokyo-time">--:--</div>
+                                </div>
+                                <div class="session-bar-container">
+                                    <div class="session-bar" id="tokyo-bar">2am-11am</div>
+                                </div>
+                            </div>
+                            <div class="session-row">
+                                <div class="session-info">
+                                    <div class="session-city-name">London</div>
+                                    <div class="session-city-time" id="london-time">--:--</div>
+                                </div>
+                                <div class="session-bar-container">
+                                    <div class="session-bar" id="london-bar">10am-7pm</div>
+                                </div>
+                            </div>
+                            <div class="session-row">
+                                <div class="session-info">
+                                    <div class="session-city-name">New York</div>
+                                    <div class="session-city-time" id="newyork-time">--:--</div>
+                                </div>
+                                <div class="session-bar-container">
+                                    <div class="session-bar" id="newyork-bar">3pm-12am</div>
+                                </div>
+                            </div>
+                            <div class="time-indicator-container">
+                                <div class="time-indicator" id="time-indicator"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="calendar-bottom">
+                <div id="economic-calendar-296491">
+                  <script type="text/javascript" src="https://www.cashbackforex.com/Content/remote/remote-calendar-widget.js"></script>
+                  <script type="text/javascript">
+                    RemoteCalendar({
+                      "DefaultTime": "today",
+                      "DefaultTheme": "plain",
+                      "Url": "https://www.cashbackforex.com",
+                      "SubPath": "economic-calendar",
+                      "IsShowEmbedButton": false,
+                      "DefaultCountries": "AL,AD,AT,BY,BE,BA,BG,HR,CZ,DK,EE,EU,FO,FI,FR,DE,GR,HU,IS,IE,IM,IT,XK,LV,LI,LT,LU,MK,MT,MD,MC,ME,NL,NO,PL,PT,RO,SM,RS,SK,SI,ES,SE,CH,UA,GB,us,jp,ca,au,nz,cn",
+                      "DefaultImpacts": "HIGH,MEDIUM",
+                      "ContainerId": "economic-calendar-296491"
+                    });
+                  </script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- News Sidebar -->
+    <div id="news-sidebar" class="sidebar">
+        <div class="sidebar-content">
+            <div class="news-controls">
+                <div class="news-left-controls">
+                    <button class="news-refresh-btn" onclick="loadNewsFeeds()">🔄 Refresh</button>
+                    <div class="font-controls">
+                        <button class="font-btn" onclick="decreaseFontSize()">A-</button>
+                        <button class="font-btn" onclick="increaseFontSize()">A+</button>
+                    </div>
+                </div>
+                <div class="news-stats" id="news-stats">Auto-refresh every 30 seconds</div>
+            </div>
+            <div class="news-briefing" id="news-briefing">
+                Real-time breaking news affecting forex, indices, gold, oil & crypto markets
+            </div>
+            <div class="news-list">
+                <div id="news-list-container">
+                    <div class="loading">Click NEWS to load breaking news...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSymbol = '';
+        let isModalOpen = false;
+        let activeSidebar = null;
+        let newsUpdateInterval = null;
+        let timeIndicatorInterval = null;
+        let loadCount = 0;
+        let existingNewsLinks = new Set();
+        let isFirstLoad = true;
+        let fontSizeLevel = 0;
+        let currentGlobalTimeframe = '15';
+        let showingCrosses = false;
+        
+        const MAJORS = [
+            { symbol: 'OANDA:EURUSD', emoji: '🇪🇺', name: 'EURUSD' },
+            { symbol: 'OANDA:GBPUSD', emoji: '🇬🇧', name: 'GBPUSD' },
+            { symbol: 'OANDA:USDJPY', emoji: '🇯🇵', name: 'USDJPY' },
+            { symbol: 'OANDA:USDCHF', emoji: '🇨🇭', name: 'USDCHF' },
+            { symbol: 'OANDA:USDCAD', emoji: '🇨🇦', name: 'USDCAD' },
+            { symbol: 'OANDA:AUDUSD', emoji: '🇦🇺', name: 'AUDUSD' },
+            { symbol: 'OANDA:NZDUSD', emoji: '🇳🇿', name: 'NZDUSD' },
+            { symbol: 'OANDA:XAUUSD', emoji: '🥇', name: 'XAUUSD' },
+            { symbol: 'COINBASE:BTCUSD', emoji: '₿', name: 'BTCUSD' },
+            { symbol: 'TVC:USOIL', emoji: '🛢️', name: 'WTIUSD' },
+            { symbol: 'FOREXCOM:SPX500', emoji: '📈', name: 'S&P500' },
+            { symbol: 'CAPITALCOM:DXY', emoji: '💵', name: 'DXY' }
+        ];
+
+        const CROSSES = [
+            { symbol: 'OANDA:EURJPY', emoji: '🇪🇺🇯🇵', name: 'EURJPY' },
+            { symbol: 'OANDA:EURGBP', emoji: '🇪🇺🇬🇧', name: 'EURGBP' },
+            { symbol: 'OANDA:EURAUD', emoji: '🇪🇺🇦🇺', name: 'EURAUD' },
+            { symbol: 'OANDA:EURCHF', emoji: '🇪🇺🇨🇭', name: 'EURCHF' },
+            { symbol: 'OANDA:GBPJPY', emoji: '🇬🇧🇯🇵', name: 'GBPJPY' },
+            { symbol: 'OANDA:GBPAUD', emoji: '🇬🇧🇦🇺', name: 'GBPAUD' },
+            { symbol: 'OANDA:GBPCAD', emoji: '🇬🇧🇨🇦', name: 'GBPCAD' },
+            { symbol: 'OANDA:GBPCHF', emoji: '🇬🇧🇨🇭', name: 'GBPCHF' },
+            { symbol: 'OANDA:AUDJPY', emoji: '🇦🇺🇯🇵', name: 'AUDJPY' },
+            { symbol: 'OANDA:CADJPY', emoji: '🇨🇦🇯🇵', name: 'CADJPY' },
+            { symbol: 'OANDA:AUDCAD', emoji: '🇦🇺🇨🇦', name: 'AUDCAD' },
+            { symbol: 'OANDA:AUDNZD', emoji: '🇦🇺🇳🇿', name: 'AUDNZD' }
+        ];
+        
+        const NEWS_SOURCES = [
+            {name: 'ForexLive', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.forexlive.com/feed/news', abbr: 'FXL'},
+            {name: 'Investing.com', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.investing.com/rss/news.rss', abbr: 'INV'},
+            {name: 'Investing Forex', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.investing.com/rss/news_301.rss', abbr: 'INV'},
+            {name: 'Reuters Top', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.reuters.com/rssFeed/topNews', abbr: 'RTR'},
+            {name: 'Reuters Markets', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.reuters.com/rssFeed/businessNews', abbr: 'RTR'},
+            {name: 'MarketWatch', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.marketwatch.com/rss/realtimeheadlines', abbr: 'MW'},
+            {name: 'CNBC Breaking', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://www.cnbc.com/id/100003114/device/rss/rss.html', abbr: 'NBC'},
+            {name: 'Bloomberg', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://feeds.bloomberg.com/politics/news.rss', abbr: 'BBG'},
+            {name: 'AP Breaking', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://rsshub.app/apnews/topics/apf-topnews', abbr: 'AP'},
+            {name: 'Yahoo Finance', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://finance.yahoo.com/news/rssindex', abbr: 'YF'},
+            {name: 'Zerohedge', url: 'https://api.rss2json.com/v1/api.json?rss_url=https://feeds.feedburner.com/zerohedge/feed', abbr: 'ZH'},
+            {name: 'BBC Breaking', url: 'https://api.rss2json.com/v1/api.json?rss_url=http://feeds.bbci.co.uk/news/rss.xml', abbr: 'BBC'}
+        ];
+
+        const tradingSessions = {
+            sydney: { start: 0, end: 9, timezone: 'Australia/Sydney', bar: 'sydney-bar', timeDisplay: 'sydney-time' },
+            tokyo: { start: 2, end: 11, timezone: 'Asia/Tokyo', bar: 'tokyo-bar', timeDisplay: 'tokyo-time' },
+            london: { start: 10, end: 19, timezone: 'Europe/London', bar: 'london-bar', timeDisplay: 'london-time' },
+            newyork: { start: 15, end: 24, timezone: 'America/New_York', bar: 'newyork-bar', timeDisplay: 'newyork-time' }
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllCharts(MAJORS);
+        });
+
+        function toggleCrosses() {
+            showingCrosses = !showingCrosses;
+            const handle = document.getElementById('crosses-handle');
+            
+            if (showingCrosses) {
+                handle.classList.add('active');
+                loadAllCharts(CROSSES);
+            } else {
+                handle.classList.remove('active');
+                loadAllCharts(MAJORS);
+            }
+        }
+
+        function loadAllCharts(chartConfig) {
+            for (let i = 0; i < 12; i++) {
+                const containerId = (i + 1).toString();
+                const config = chartConfig[i];
+                
+                const watermark = document.getElementById(`watermark-${containerId}`);
+                watermark.innerHTML = `<span class="watermark-emoji">${config.emoji}</span> <span class="pair-name">${config.name}</span>`;
+                watermark.onclick = function() { toggleModal(config.symbol); };
+                
+                const container = document.querySelector(`[data-container-id="${containerId}"]`);
+                container.setAttribute('data-symbol', config.symbol);
+                
+                loadChartInContainer(containerId, config.symbol, currentGlobalTimeframe);
+            }
+        }
+        
+        function loadChartInContainer(containerId, symbol, interval) {
+            const chartContainer = document.getElementById(`chart-container-${containerId}`);
+            chartContainer.innerHTML = '';
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'tradingview-widget-container__widget';
+            chartDiv.style.height = 'calc(100% - 32px)';
+            chartDiv.style.width = '100%';
+            chartContainer.appendChild(chartDiv);
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "allow_symbol_change": true, "calendar": false, "details": false,
+                "hide_side_toolbar": true, "hide_top_toolbar": true, "hide_legend": true,
+                "hide_volume": true, "hotlist": false, "interval": interval, "locale": "en",
+                "save_image": false, "style": "1", "symbol": symbol, "theme": "light",
+                "timezone": "Africa/Cairo", "backgroundColor": "#ffffff",
+                "gridColor": "rgba(255, 255, 255, 0)", "watchlist": [],
+                "withdateranges": false, "compareSymbols": [],
+                "studies": [{"id": "MAExp@tv-basicstudies", "inputs": {"length": 200}}],
+                "autosize": true
+            });
+            chartContainer.appendChild(script);
+        }
+        
+        function changeTimeframe(event, containerId) {
+            const element = event.target;
+            const interval = element.getAttribute('data-interval');
+            const container = element.parentElement;
+            const timeframes = container.querySelectorAll('.timeframe');
+            timeframes.forEach(tf => tf.classList.remove('active'));
+            element.classList.add('active');
+            const parentContainer = document.querySelector(`[data-container-id="${containerId}"]`);
+            const symbol = parentContainer.getAttribute('data-symbol');
+            loadChartInContainer(containerId, symbol, interval);
+        }
+
+        function changeAllTimeframes(interval) {
+            currentGlobalTimeframe = interval;
+            document.querySelectorAll('.sidebar-handle[id^="tf-"]').forEach(handle => {
+                handle.classList.remove('active');
+            });
+            document.getElementById(`tf-${interval}`).classList.add('active');
+            
+            for (let i = 1; i <= 12; i++) {
+                const container = document.querySelector(`[data-container-id="${i}"]`);
+                const symbol = container.getAttribute('data-symbol');
+                const timeframeSelector = container.querySelector('.timeframe-selector');
+                const timeframes = timeframeSelector.querySelectorAll('.timeframe');
+                timeframes.forEach(tf => {
+                    if (tf.getAttribute('data-interval') === interval) {
+                        tf.classList.add('active');
+                    } else {
+                        tf.classList.remove('active');
+                    }
+                });
+                loadChartInContainer(i, symbol, interval);
+            }
+        }
+        
+        function toggleModal(symbol) {
+            const overlay = document.getElementById('modal-overlay');
+            if (!symbol) {
+                overlay.style.display = 'none';
+                isModalOpen = false;
+                return;
+            }
+            if (isModalOpen && currentSymbol === symbol) {
+                overlay.style.display = 'none';
+                isModalOpen = false;
+                return;
+            }
+            if (currentSymbol !== symbol) {
+                currentSymbol = symbol;
+                reloadCharts(symbol);
+            }
+            overlay.style.display = 'flex';
+            isModalOpen = true;
+        }
+
+        function reloadCharts(symbol) {
+            ['15', '60', '240'].forEach(interval => {
+                const wrapper = document.getElementById('chart-wrapper-' + interval);
+                wrapper.innerHTML = '';
+                const container = document.createElement('div');
+                container.className = 'tradingview-widget-container';
+                container.style.height = '100%';
+                container.style.width = '100%';
+                const chartDiv = document.createElement('div');
+                chartDiv.className = 'tradingview-widget-container__widget';
+                chartDiv.style.height = 'calc(100% - 32px)';
+                chartDiv.style.width = '100%';
+                container.appendChild(chartDiv);
+                const script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+                script.async = true;
+                script.innerHTML = JSON.stringify({
+                    "allow_symbol_change": true, "calendar": false, "details": false,
+                    "hide_side_toolbar": false, "hide_top_toolbar": false, "hide_legend": true,
+                    "hide_volume": true, "hotlist": false, "interval": interval, "locale": "en",
+                    "save_image": false, "style": "1", "symbol": symbol, "theme": "light",
+                    "timezone": "Africa/Cairo", "backgroundColor": "#ffffff",
+                    "gridColor": "rgba(255, 255, 255, 0)", "watchlist": [],
+                    "withdateranges": false, "compareSymbols": [], "studies": [], "autosize": true
+                });
+                container.appendChild(script);
+                wrapper.appendChild(container);
+            });
+        }
+
+        function toggleSidebar(type) {
+            const calendarSidebar = document.getElementById('calendar-sidebar');
+            const newsSidebar = document.getElementById('news-sidebar');
+            
+            if (type === 'calendar') {
+                if (activeSidebar === 'calendar') {
+                    calendarSidebar.classList.remove('open');
+                    activeSidebar = null;
+                    stopTimeIndicatorUpdates();
+                } else {
+                    newsSidebar.classList.remove('open');
+                    calendarSidebar.classList.add('open');
+                    activeSidebar = 'calendar';
+                    if (newsUpdateInterval) {
+                        clearInterval(newsUpdateInterval);
+                        newsUpdateInterval = null;
+                    }
+                    initializeTradingSessions();
+                    startTimeIndicatorUpdates();
+                }
+            } else if (type === 'news') {
+                if (activeSidebar === 'news') {
+                    newsSidebar.classList.remove('open');
+                    activeSidebar = null;
+                    if (newsUpdateInterval) {
+                        clearInterval(newsUpdateInterval);
+                        newsUpdateInterval = null;
+                    }
+                } else {
+                    calendarSidebar.classList.remove('open');
+                    newsSidebar.classList.add('open');
+                    activeSidebar = 'news';
+                    stopTimeIndicatorUpdates();
+                    if (isFirstLoad) {
+                        loadNewsFeeds();
+                    }
+                    newsUpdateInterval = setInterval(loadNewsFeeds, 30000);
+                }
+            }
+        }
+
+        function createRuler() {
+            const rulerElement = document.getElementById('time-ruler');
+            const labels = [];
+            
+            for (let i = 0; i < 24; i++) {
+                const hour12 = i % 12 || 12;
+                const ampm = i < 12 ? 'am' : 'pm';
+                labels.push(`${hour12}${ampm}`);
+            }
+            
+            rulerElement.innerHTML = labels.map(label => 
+                `<span class="time-label">${label}</span>`
+            ).join('');
+        }
+
+        function initializeTradingSessions() {
+            createRuler();
+            positionSessionBar('sydney-bar', tradingSessions.sydney);
+            positionSessionBar('tokyo-bar', tradingSessions.tokyo);
+            positionSessionBar('london-bar', tradingSessions.london);
+            positionSessionBar('newyork-bar', tradingSessions.newyork);
+            updateTimeIndicator();
+        }
+
+        function positionSessionBar(barId, session) {
+            const bar = document.getElementById(barId);
+            const startPercent = (session.start / 24) * 100;
+            let width;
+            
+            if (session.end <= session.start) {
+                width = ((24 - session.start + session.end) / 24) * 100;
+            } else {
+                width = ((session.end - session.start) / 24) * 100;
+            }
+            
+            bar.style.left = startPercent + '%';
+            bar.style.width = width + '%';
+        }
+
+        function isSessionActive(session, currentTime) {
+            if (session.end < session.start) {
+                return currentTime >= session.start || currentTime < session.end;
+            } else {
+                return currentTime >= session.start && currentTime < session.end;
+            }
+        }
+
+        function updateCityTimes() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const currentTime = currentHour + (currentMinutes / 60);
+            
+            Object.keys(tradingSessions).forEach(key => {
+                const session = tradingSessions[key];
+                const timeElement = document.getElementById(session.timeDisplay);
+                const barElement = document.getElementById(session.bar);
+                
+                try {
+                    const cityTime = new Date(now.toLocaleString('en-US', { timeZone: session.timezone }));
+                    const hours = cityTime.getHours();
+                    const minutes = cityTime.getMinutes();
+                    const ampm = hours >= 12 ? 'pm' : 'am';
+                    const displayHours = hours % 12 || 12;
+                    const displayMinutes = minutes.toString().padStart(2, '0');
+                    timeElement.textContent = `${displayHours}:${displayMinutes}${ampm}`;
+                    
+                    if (isSessionActive(session, currentTime)) {
+                        barElement.classList.add('active');
+                    } else {
+                        barElement.classList.remove('active');
+                    }
+                } catch (error) {
+                    timeElement.textContent = '--:--';
+                }
+            });
+        }
+
+        function updateTimeIndicator() {
+            const indicator = document.getElementById('time-indicator');
+            const currentTimeDisplay = document.getElementById('current-time-display');
+            
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const currentTime = hours + (minutes / 60);
+            
+            const position = (currentTime / 24) * 100;
+            indicator.style.left = position + '%';
+            
+            const ampm = hours >= 12 ? 'pm' : 'am';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            currentTimeDisplay.textContent = `${displayHours}:${displayMinutes}${ampm} Local`;
+            
+            updateCityTimes();
+        }
+
+        function startTimeIndicatorUpdates() {
+            if (timeIndicatorInterval) clearInterval(timeIndicatorInterval);
+            timeIndicatorInterval = setInterval(updateTimeIndicator, 1000);
+        }
+
+        function stopTimeIndicatorUpdates() {
+            if (timeIndicatorInterval) {
+                clearInterval(timeIndicatorInterval);
+                timeIndicatorInterval = null;
+            }
+        }
+
+        function updateFontSizes() {
+            const root = document.documentElement;
+            const baseSizes = {time: 12, source: 11, title: 14, desc: 12};
+            const increment = fontSizeLevel * 1;
+            root.style.setProperty('--time-font-size', `${baseSizes.time + increment}px`);
+            root.style.setProperty('--source-font-size', `${baseSizes.source + increment}px`);
+            root.style.setProperty('--title-font-size', `${baseSizes.title + increment}px`);
+            root.style.setProperty('--desc-font-size', `${baseSizes.desc + increment}px`);
+        }
+
+        function increaseFontSize() {
+            if (fontSizeLevel < 3) {
+                fontSizeLevel++;
+                updateFontSizes();
+            }
+        }
+
+        function decreaseFontSize() {
+            if (fontSizeLevel > -2) {
+                fontSizeLevel--;
+                updateFontSizes();
+            }
+        }
+
+        async function loadNewsFeeds() {
+            loadCount++;
+            const statsContainer = document.getElementById('news-stats');
+            const briefingContainer = document.getElementById('news-briefing');
+            const newsListContainer = document.getElementById('news-list-container');
+            if (isFirstLoad) {
+                newsListContainer.innerHTML = '<div class="loading">Loading breaking news...</div>';
+            }
+            statsContainer.textContent = `Loading... (#${loadCount})`;
+            try {
+                const allNews = [];
+                const fetchPromises = NEWS_SOURCES.map(async (source) => {
+                    try {
+                        const response = await fetch(source.url);
+                        const data = await response.json();
+                        if (data.status === 'ok' && data.items && data.items.length > 0) {
+                            return data.items.slice(0, 25).map(item => ({
+                                title: item.title,
+                                link: item.link,
+                                description: stripHtml(item.description || item.content || '').substring(0, 150),
+                                pubDate: new Date(item.pubDate),
+                                source: source.name,
+                                abbr: source.abbr
+                            }));
+                        }
+                        return [];
+                    } catch (error) {
+                        return [];
+                    }
+                });
+                const results = await Promise.all(fetchPromises);
+                results.forEach(items => allNews.push(...items));
+                allNews.sort((a, b) => b.pubDate - a.pubDate);
+                const newItems = allNews.filter(item => !existingNewsLinks.has(item.link));
+                if (isFirstLoad) {
+                    displayNews(allNews.slice(0, 100), false);
+                    allNews.forEach(item => existingNewsLinks.add(item.link));
+                    isFirstLoad = false;
+                } else if (newItems.length > 0) {
+                    prependNews(newItems);
+                    newItems.forEach(item => existingNewsLinks.add(item.link));
+                    trimNewsList(100);
+                }
+                const now = new Date();
+                const successCount = results.filter(r => r.length > 0).length;
+                const latestNews = allNews[0];
+                const freshness = latestNews ? getTimeAgo(latestNews.pubDate) : 'now';
+                statsContainer.textContent = `${existingNewsLinks.size} articles • ${successCount}/${NEWS_SOURCES.length} active • ${now.toLocaleTimeString()}`;
+                briefingContainer.textContent = `Latest: ${freshness} • ${newItems.length} new articles • Breaking market news`;
+            } catch (error) {
+                if (isFirstLoad) {
+                    newsListContainer.innerHTML = `<div class="loading" style="color: #d73a49;">Error loading feeds. Click refresh.</div>`;
+                }
+                statsContainer.textContent = `Error (#${loadCount})`;
+            }
+        }
+
+        function displayNews(newsItems) {
+            const newsListContainer = document.getElementById('news-list-container');
+            if (newsItems.length === 0) {
+                newsListContainer.innerHTML = '<div class="loading">No news available.</div>';
+                return;
+            }
+            let html = '';
+            newsItems.forEach(item => { html += createNewsItemHTML(item, false); });
+            newsListContainer.innerHTML = html;
+        }
+
+        function prependNews(newsItems) {
+            const newsListContainer = document.getElementById('news-list-container');
+            newsItems.forEach(item => {
+                const newsItemHTML = createNewsItemHTML(item, true);
+                newsListContainer.insertAdjacentHTML('afterbegin', newsItemHTML);
+            });
+        }
+
+        function createNewsItemHTML(item, isNew = false) {
+            const timeStr = formatTime(item.pubDate);
+            const newClass = isNew ? ' new-item' : '';
+            return `
+                <div class="news-item${newClass}" data-link="${item.link}">
+                    <div class="news-time">${timeStr}</div>
+                    <div class="news-source">${item.abbr}</div>
+                    <div class="news-content">
+                        <div class="news-title">
+                            <a href="${item.link}" target="_blank" rel="noopener">${item.title}</a>
+                        </div>
+                        ${item.description ? `<div class="news-description">${item.description}...</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function trimNewsList(maxItems) {
+            const newsListContainer = document.getElementById('news-list-container');
+            const newsItems = newsListContainer.querySelectorAll('.news-item');
+            if (newsItems.length > maxItems) {
+                for (let i = maxItems; i < newsItems.length; i++) {
+                    const link = newsItems[i].getAttribute('data-link');
+                    existingNewsLinks.delete(link);
+                    newsItems[i].remove();
+                }
+            }
+        }
+
+        function stripHtml(html) {
+            const tmp = document.createElement('DIV');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
+        }
+
+        function formatTime(date) {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const displayMinutes = minutes.toString().padStart(2, '0');
+            return `${displayHours}:${displayMinutes}${ampm}`;
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                if (isModalOpen) toggleModal();
+                if (activeSidebar) {
+                    document.getElementById('calendar-sidebar').classList.remove('open');
+                    document.getElementById('news-sidebar').classList.remove('open');
+                    activeSidebar = null;
+                    if (newsUpdateInterval) {
+                        clearInterval(newsUpdateInterval);
+                        newsUpdateInterval = null;
+                    }
+                    stopTimeIndicatorUpdates();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
