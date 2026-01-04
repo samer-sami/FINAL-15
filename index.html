@@ -34,6 +34,12 @@
       --anim: 0.12s;
 
       --news-font-scale: 1;
+
+      --calendar-text: #ffffff;
+
+      --news-text: #f9fafb;
+      --news-text-secondary: #e5e7eb;
+      --news-text-muted: #d1d5db;
     }
 
     [data-theme="light"] {
@@ -49,6 +55,12 @@
 
       --topbar-bg: #ffffff;
       --topbar-border: rgba(17, 24, 39, 0.12);
+
+      --calendar-text: #000000;
+
+      --news-text: #111827;
+      --news-text-secondary: #111827;
+      --news-text-muted: #374151;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -237,10 +249,19 @@
       height: 100%;
     }
 
-    .watermark {
+    /* Watermark + TF square row (same level, square AFTER watermark) */
+    .wm-row {
       position: absolute;
       top: 3px;
       left: 3px;
+      z-index: 12;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: auto;
+    }
+
+    .watermark {
       z-index: 10;
       font-size: 10px;
       font-weight: 600;
@@ -251,10 +272,37 @@
       border-radius: 4px;
       border: 1px solid var(--border-color);
       transition: all var(--anim);
+      line-height: 1;
+      user-select: none;
     }
 
     .watermark:hover { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
     .watermark .tf { font-size: 9px; margin-left: 4px; opacity: 0.7; }
+
+    .tf-square {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      z-index: 12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-primary);
+      cursor: pointer;
+      user-select: none;
+      transition: all var(--anim);
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+    .tf-square:hover {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+    }
 
     /* Panel */
     .panel {
@@ -336,10 +384,10 @@
     .sessions-section {
       flex: 0 0 25%;
       height: 25%;
-      padding: 8px 10px 6px;
-      border-bottom: 1px solid var(--border-color);
+      padding: 6px 10px 6px; /* tightened so it fits without cropping */
+      border-top: 1px solid var(--border-color);
       background: var(--bg-tertiary);
-      overflow: hidden;
+      overflow: hidden; /* no scrolling */
       display: flex;
       flex-direction: column;
       min-height: 110px;
@@ -363,8 +411,18 @@
       flex: 0 0 auto;
     }
 
-    #sessionContainer { flex: 1 1 auto; min-height: 0; }
-    .session-row { display: flex; align-items: center; padding: 3px 0; }
+    /* Fit sessions in container without scrolling */
+    #sessionContainer {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 2px;
+    }
+
+    .session-row { display: flex; align-items: center; padding: 2px 0; }
 
     .session-label {
       width: 86px;
@@ -434,7 +492,7 @@
       flex: 0 0 auto;
       display: flex;
       justify-content: space-between;
-      margin-top: 4px;
+      margin-top: 2px; /* tightened to avoid cropping */
       padding-left: 86px;
     }
     .hour-labels span { font-size: 9px; color: var(--text-muted); }
@@ -444,6 +502,27 @@
       width: 100%;
       background: var(--bg-secondary);
       position: relative;
+    }
+
+    /* Calendar high-contrast text + smaller clock */
+    .calendar-container .section-title,
+    .calendar-container .session-label,
+    .calendar-container .session-label .time,
+    .calendar-container .hour-labels span,
+    .calendar-container .local-clock {
+      color: var(--calendar-text) !important;
+    }
+
+    .local-clock {
+      flex: 0 0 auto;
+      text-align: center;
+      font-weight: 700;
+      line-height: 1.05;
+      font-size: clamp(12px, 1.6vw, 16px); /* smaller */
+      margin: 0 0 4px; /* tighter */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* News */
@@ -467,7 +546,7 @@
 
     .news-status {
       font-size: calc(11px * var(--news-font-scale));
-      color: var(--text-muted);
+      color: var(--news-text-muted);
     }
 
     .news-controls { display: flex; align-items: center; gap: 6px; }
@@ -478,7 +557,7 @@
       border: 1px solid var(--border-color);
       border-radius: 4px;
       font-size: calc(11px * var(--news-font-scale));
-      color: var(--text-primary);
+      color: var(--news-text);
       cursor: pointer;
       transition: all var(--anim);
       line-height: 1;
@@ -518,7 +597,7 @@
 
     .news-meta {
       font-size: calc(12px * var(--news-font-scale));
-      color: var(--text-muted);
+      color: var(--news-text-muted);
       background: var(--bg-secondary);
       padding: 2px 6px;
       border-radius: 3px;
@@ -527,7 +606,7 @@
     .news-desc {
       margin-top: 6px;
       font-size: calc(14px * var(--news-font-scale));
-      color: var(--text-secondary);
+      color: var(--news-text-secondary);
       line-height: 1.4;
     }
 
@@ -552,6 +631,16 @@
 
     /* Modal */
     #chartModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 9999;
+      padding: 15px;
+    }
+
+    /* Single Timeframe Chart Modal */
+    #tfChartModal {
       display: none;
       position: fixed;
       inset: 0;
@@ -602,6 +691,12 @@
     .modal-right { flex: 1; display: flex; flex-direction: column; }
     .modal-right-top, .modal-right-bottom { flex: 1; position: relative; }
     .modal-right-top { border-bottom: 1px solid var(--border-color); }
+
+    .modal-single {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+    }
 
     @media (max-width: 768px) {
       .dock { width: 36px; }
@@ -719,6 +814,19 @@
     </div>
   </div>
 
+  <!-- Single Timeframe Chart Modal -->
+  <div id="tfChartModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title" id="tfModalSymbol">Symbol</div>
+        <button class="modal-close" onclick="closeTfPopup()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-single" id="tfPopupMain"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Content -->
   <main id="mainContent"></main>
 
@@ -770,6 +878,7 @@
       updateThemeIcon();
 
       closePopup();
+      closeTfPopup();
       generateChartGrid();
 
       if (currentPanel) {
@@ -935,7 +1044,21 @@
             watermark.innerHTML = `${sym.name}<span class="tf">${tf.label}</span>`;
             watermark.onclick = () => openPopup(sym.symbol, sym.name);
 
-            cell.appendChild(watermark);
+            const tfSquare = document.createElement('div');
+            tfSquare.className = 'tf-square';
+            tfSquare.textContent = tf.label;
+            tfSquare.title = `Open ${sym.name} ${tf.label}`;
+            tfSquare.addEventListener('click', (e) => {
+              e.stopPropagation();
+              openTfPopup(sym.symbol, sym.name, tf.interval, tf.label);
+            });
+
+            const wmRow = document.createElement('div');
+            wmRow.className = 'wm-row';
+            wmRow.appendChild(watermark);
+            wmRow.appendChild(tfSquare);
+
+            cell.appendChild(wmRow);
             row.appendChild(cell);
           }
 
@@ -961,13 +1084,13 @@
         icon: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
         html: `
           <div class="calendar-container">
-            <div class="sessions-section">
-              <div class="section-title">Trading Sessions (Local Time)</div>
-              <div id="sessionContainer"></div>
-              <div class="hour-labels" id="hourLabels"></div>
-            </div>
             <div class="calendar-section">
               <div id="economic-calendar-widget"></div>
+            </div>
+            <div class="sessions-section">
+              <div id="localClock" class="local-clock"></div>
+              <div id="sessionContainer"></div>
+              <div class="hour-labels" id="hourLabels"></div>
             </div>
           </div>
         `
@@ -1005,8 +1128,8 @@
       if (!data || !panel || !panelTitle || !panelBody) return;
 
       if (currentPanel === key) {
-        closePanel();     // closes
-        return;           // next click will open normally
+        closePanel();
+        return;
       }
 
       panel.classList.add('open');
@@ -1055,6 +1178,9 @@
     // Calendar panel
     let fxVerifyScriptLoaded = false;
     let fxVerifyScriptLoading = false;
+
+    let calendarSessionsInterval = 0;
+    let calendarClockInterval = 0;
 
     function loadFxVerifyScript(cb) {
       if (fxVerifyScriptLoaded) { cb(); return; }
@@ -1112,6 +1238,19 @@
       function getLocalTime(timezone) {
         return new Date().toLocaleTimeString('en-US', {
           hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone
+        });
+      }
+
+      if (calendarSessionsInterval) clearInterval(calendarSessionsInterval);
+      if (calendarClockInterval) clearInterval(calendarClockInterval);
+
+      function renderClock() {
+        const clock = document.getElementById('localClock');
+        if (!clock) return;
+        clock.textContent = new Date().toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
         });
       }
 
@@ -1181,8 +1320,11 @@
       }
 
       renderHourLabels();
+      renderClock();
       renderSessions();
-      setInterval(renderSessions, 60000);
+
+      calendarClockInterval = setInterval(renderClock, 1000);
+      calendarSessionsInterval = setInterval(renderSessions, 60000);
 
       const theme = getTheme();
       const calContainer = document.getElementById('economic-calendar-widget');
@@ -1377,8 +1519,27 @@
       });
     }
 
+    function openTfPopup(symbol, name, interval, tfLabel) {
+      const theme = getTheme();
+      const title = `${name || symbol} • ${tfLabel || interval}`;
+      document.getElementById('tfModalSymbol').textContent = title;
+
+      injectWidget('tfPopupMain', symbol, interval, theme);
+      document.getElementById('tfChartModal').style.display = 'block';
+    }
+
+    function closeTfPopup() {
+      const modal = document.getElementById('tfChartModal');
+      if (modal) modal.style.display = 'none';
+
+      const el = document.getElementById('tfPopupMain');
+      if (el) el.innerHTML = '';
+    }
+
     window.openPopup = openPopup;
     window.closePopup = closePopup;
+    window.openTfPopup = openTfPopup;
+    window.closeTfPopup = closeTfPopup;
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -1387,6 +1548,7 @@
       switch(e.key.toLowerCase()) {
         case 'escape':
           closePopup();
+          closeTfPopup();
           closePanel();
           break;
         case 'c':
@@ -1420,7 +1582,6 @@
 
       const safety = 0.985;
 
-      // allow zoom out AND zoom in (bounded to avoid huge scaling)
       const minScale = 0.6;
       const maxScale = 1.25;
       const raw = (viewportWidth / stripWidth) * safety;
