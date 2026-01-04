@@ -27,15 +27,12 @@
 
       --dock-w: 42px;
 
-      /* Topbar */
       --topbar-height: 42px;
       --topbar-bg: #0b0f1a;
       --topbar-border: rgba(255, 255, 255, 0.12);
 
-      /* Reduced animation */
       --anim: 0.12s;
 
-      /* News font scaling */
       --news-font-scale: 1;
     }
 
@@ -187,7 +184,6 @@
       border: 1px solid var(--border-color);
       z-index: 1000;
     }
-
     .dock-btn:hover .dock-tooltip { opacity: 1; }
 
     /* Main */
@@ -368,7 +364,6 @@
     }
 
     #sessionContainer { flex: 1 1 auto; min-height: 0; }
-
     .session-row { display: flex; align-items: center; padding: 3px 0; }
 
     .session-label {
@@ -442,7 +437,6 @@
       margin-top: 4px;
       padding-left: 86px;
     }
-
     .hour-labels span { font-size: 9px; color: var(--text-muted); }
 
     #economic-calendar-widget {
@@ -776,7 +770,7 @@
       updateThemeIcon();
 
       closePopup();
-      generateChartGrid(); // will lazy-load again
+      generateChartGrid();
 
       if (currentPanel) {
         const p = currentPanel;
@@ -801,7 +795,7 @@
       return symbol.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
     }
 
-    /* ====== Performance optimization: Lazy-load chart widgets ====== */
+    /* Lazy-load chart widgets */
     let chartIO = null;
     let chartLoadQueue = [];
     let chartLoadScheduled = false;
@@ -813,7 +807,6 @@
       const run = () => {
         chartLoadScheduled = false;
 
-        // Load only a few widgets per frame to keep Firefox responsive.
         const perFrame = 2;
         for (let i = 0; i < perFrame && chartLoadQueue.length; i++) {
           const cell = chartLoadQueue.shift();
@@ -823,9 +816,7 @@
           }
         }
 
-        if (chartLoadQueue.length) {
-          requestAnimationFrame(run);
-        }
+        if (chartLoadQueue.length) requestAnimationFrame(run);
       };
 
       requestAnimationFrame(run);
@@ -860,14 +851,12 @@
         }
       }, {
         root: main,
-        rootMargin: '900px 0px', // preload ahead of scroll
+        rootMargin: '900px 0px',
         threshold: 0.01
       });
 
       const cells = document.querySelectorAll('.chart-cell[data-symbol]');
-      for (let i = 0; i < cells.length; i++) {
-        chartIO.observe(cells[i]);
-      }
+      for (let i = 0; i < cells.length; i++) chartIO.observe(cells[i]);
     }
 
     function injectGridChartWidget(cell) {
@@ -908,7 +897,6 @@
       cell.appendChild(widgetContainer);
     }
 
-    // Generate chart grid (placeholders only; widgets load lazily)
     function generateChartGrid() {
       const main = document.getElementById('mainContent');
       if (!main) return;
@@ -1017,8 +1005,8 @@
       if (!data || !panel || !panelTitle || !panelBody) return;
 
       if (currentPanel === key) {
-        closePanel();
-        return;
+        closePanel();     // closes
+        return;           // next click will open normally
       }
 
       panel.classList.add('open');
@@ -1416,7 +1404,7 @@
       }
     });
 
-    /* ===== Topbar Auto-fit (optimized: no mutation observer / no long interval loop) ===== */
+    /* ===== Topbar Auto-fit (zoom IN + OUT) ===== */
     let fitRaf = 0;
 
     function autoFitTickersNow() {
@@ -1431,7 +1419,12 @@
       if (!stripWidth || !viewportWidth) return;
 
       const safety = 0.985;
-      const scale = Math.min(1, (viewportWidth / stripWidth) * safety);
+
+      // allow zoom out AND zoom in (bounded to avoid huge scaling)
+      const minScale = 0.6;
+      const maxScale = 1.25;
+      const raw = (viewportWidth / stripWidth) * safety;
+      const scale = Math.max(minScale, Math.min(maxScale, raw));
 
       strip.style.transform = `scale(${scale})`;
     }
@@ -1446,7 +1439,6 @@
 
     function startTickerAutoFit() {
       scheduleTickerFit();
-      // A few light passes while TV widgets render async (bounded)
       setTimeout(scheduleTickerFit, 200);
       setTimeout(scheduleTickerFit, 500);
       setTimeout(scheduleTickerFit, 900);
@@ -1490,23 +1482,7 @@
 
     // Initialize
     generateChartGrid();
-
-    window.addEventListener("load", () => {
-      startTickerAutoFit();
-    });
-  </script>
-
-  <script>
-    // Panel binding (kept last to avoid blocking)
-    function closePanel() {
-      const panel = document.getElementById('sidePanel');
-      if (!panel) return;
-      panel.classList.remove('open');
-      window.currentPanel = null;
-
-      const btns = document.querySelectorAll('.dock-btn[data-panel]');
-      for (let i = 0; i < btns.length; i++) btns[i].classList.remove('active');
-    }
+    window.addEventListener("load", () => { startTickerAutoFit(); });
   </script>
 </body>
 </html>
