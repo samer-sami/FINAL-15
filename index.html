@@ -3,9 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
   <title>Trading Dashboard</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -696,6 +699,12 @@
       .panel { width: 85%; right: 36px; }
       .topbar { padding-right: 36px; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dock-btn, .watermark, .tf-square, .panel, .close-btn, .news-btn, .news-item {
+        transition: none !important;
+      }
+    }
   </style>
 </head>
 
@@ -706,7 +715,7 @@
   <!-- Top Bar -->
   <div class="topbar">
     <div class="ticker-viewport" id="tickerViewport">
-      <div class="ticker-strip" id="tickerStrip">
+      <div class="ticker-strip" id="tickerStrip" role="list" aria-label="Market tickers">
         <tv-ticker-tag symbol="OANDA:EURUSD"></tv-ticker-tag>
         <tv-ticker-tag symbol="OANDA:GBPUSD"></tv-ticker-tag>
         <tv-ticker-tag symbol="OANDA:USDJPY"></tv-ticker-tag>
@@ -724,9 +733,9 @@
   </div>
 
   <!-- Dock -->
-  <aside class="dock" id="dock">
+  <aside class="dock" id="dock" aria-label="Tools dock">
     <div class="dock-section">
-      <button class="dock-btn" id="themeToggle" title="Toggle Theme" data-action="theme">
+      <button class="dock-btn" id="themeToggle" title="Toggle Theme" aria-label="Toggle theme" data-action="theme">
         <svg class="icon" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="5"/>
           <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -736,7 +745,7 @@
 
       <div class="dock-sep"></div>
 
-      <button class="dock-btn" data-panel="calendar" title="Calendar">
+      <button class="dock-btn" data-panel="calendar" title="Calendar" aria-label="Open calendar panel">
         <svg class="icon" viewBox="0 0 24 24">
           <rect x="3" y="4" width="18" height="18" rx="2"/>
           <path d="M16 2v4M8 2v4M3 10h18"/>
@@ -744,7 +753,7 @@
         <div class="dock-tooltip">Calendar</div>
       </button>
 
-      <button class="dock-btn" data-panel="news" title="News">
+      <button class="dock-btn" data-panel="news" title="News" aria-label="Open news panel">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/>
           <path d="M10 6h8M10 10h8M10 14h4"/>
@@ -753,7 +762,7 @@
       </button>
 
       <!-- Fire icon for Heatmap -->
-      <button class="dock-btn" data-panel="heatmap" title="Forex Heatmap">
+      <button class="dock-btn" data-panel="heatmap" title="Forex Heatmap" aria-label="Open forex heatmap panel">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M12 2s2.8 3 2.8 6.2c0 1.4-.6 2.6-1.4 3.5-.9 1-2 1.9-2 3.6 0 1.7 1.3 3 3 3 2.6 0 4.6-2.2 4.6-5.1 0-2.2-1.1-4-2.5-5.6"/>
           <path d="M10.4 7.2S7.6 9.8 7.6 13c0 2.9 2 5 4.7 5 1.9 0 3.4-1.4 3.4-3.3 0-1.3-.7-2.2-1.5-3.1-.7-.8-1.4-1.6-1.4-2.8"/>
@@ -763,7 +772,7 @@
     </div>
 
     <div class="dock-section">
-      <button class="dock-btn" data-action="refresh" title="Refresh" id="refreshBtn">
+      <button class="dock-btn" data-action="refresh" title="Refresh" aria-label="Refresh page" id="refreshBtn">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M23 4v6h-6M1 20v-6h6"/>
           <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
@@ -774,13 +783,13 @@
   </aside>
 
   <!-- Side Panel -->
-  <section id="sidePanel" class="panel">
+  <section id="sidePanel" class="panel" aria-label="Side panel" aria-hidden="true">
     <div class="panel-header">
       <h2 id="panelTitle" class="panel-title">
         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>
         <span>Panel</span>
       </h2>
-      <button id="closePanel" class="close-btn">
+      <button id="closePanel" class="close-btn" aria-label="Close panel">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
@@ -790,11 +799,11 @@
   </section>
 
   <!-- Chart Modal -->
-  <div id="chartModal">
-    <div class="modal-container">
+  <div id="chartModal" role="dialog" aria-modal="true" aria-label="Chart comparison modal">
+    <div class="modal-container" role="document">
       <div class="modal-header">
         <div class="modal-title" id="modalSymbol">Symbol</div>
-        <button class="modal-close" onclick="closePopup()">×</button>
+        <button class="modal-close" id="closeChartModal" aria-label="Close chart modal">×</button>
       </div>
       <div class="modal-body">
         <div class="modal-left" id="popupLeft"></div>
@@ -807,11 +816,11 @@
   </div>
 
   <!-- Single Timeframe Chart Modal -->
-  <div id="tfChartModal">
-    <div class="modal-container">
+  <div id="tfChartModal" role="dialog" aria-modal="true" aria-label="Single timeframe chart modal">
+    <div class="modal-container" role="document">
       <div class="modal-header">
         <div class="modal-title" id="tfModalSymbol">Symbol</div>
-        <button class="modal-close" onclick="closeTfPopup()">×</button>
+        <button class="modal-close" id="closeTfChartModal" aria-label="Close timeframe modal">×</button>
       </div>
       <div class="modal-body">
         <div class="modal-single" id="tfPopupMain"></div>
@@ -823,830 +832,960 @@
   <main id="mainContent"></main>
 
   <script>
-    const SYMBOLS = [
-      { symbol: 'OANDA:EURUSD', name: 'EUR/USD' },
-      { symbol: 'OANDA:GBPUSD', name: 'GBP/USD' },
-      { symbol: 'OANDA:USDJPY', name: 'USD/JPY' },
-      { symbol: 'OANDA:USDCHF', name: 'USD/CHF' },
-      { symbol: 'OANDA:USDCAD', name: 'USD/CAD' },
-      { symbol: 'OANDA:AUDUSD', name: 'AUD/USD' },
-      { symbol: 'OANDA:NZDUSD', name: 'NZD/USD' },
-      { symbol: 'OANDA:XAUUSD', name: 'XAU/USD' },
-      { symbol: 'COINBASE:BTCUSD', name: 'BTC/USD' },
-      { symbol: 'TVC:USOIL', name: 'US Oil' },
-      { symbol: 'FOREXCOM:SPX500', name: 'S&P 500' },
-      { symbol: 'CAPITALCOM:DXY', name: 'DXY' }
-    ];
+    (() => {
+      'use strict';
 
-    const TIMEFRAMES = [
-      { interval: '15', label: '15m' },
-      { interval: '60', label: '1H' },
-      { interval: '240', label: '4H' }
-    ];
+      const SYMBOLS = [
+        { symbol: 'OANDA:EURUSD', name: 'EUR/USD' },
+        { symbol: 'OANDA:GBPUSD', name: 'GBP/USD' },
+        { symbol: 'OANDA:USDJPY', name: 'USD/JPY' },
+        { symbol: 'OANDA:USDCHF', name: 'USD/CHF' },
+        { symbol: 'OANDA:USDCAD', name: 'USD/CAD' },
+        { symbol: 'OANDA:AUDUSD', name: 'AUD/USD' },
+        { symbol: 'OANDA:NZDUSD', name: 'NZD/USD' },
+        { symbol: 'OANDA:XAUUSD', name: 'XAU/USD' },
+        { symbol: 'COINBASE:BTCUSD', name: 'BTC/USD' },
+        { symbol: 'TVC:USOIL', name: 'US Oil' },
+        { symbol: 'FOREXCOM:SPX500', name: 'S&P 500' },
+        { symbol: 'CAPITALCOM:DXY', name: 'DXY' }
+      ];
 
-    // Theme
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+      const TIMEFRAMES = [
+        { interval: '15', label: '15m' },
+        { interval: '60', label: '1H' },
+        { interval: '240', label: '4H' }
+      ];
 
-    function getTheme() {
-      return document.documentElement.getAttribute('data-theme');
-    }
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-    function updateThemeIcon() {
-      const theme = getTheme();
-      const btn = document.getElementById('themeToggle');
-      if (!btn) return;
-
-      btn.innerHTML = theme === 'dark'
-        ? '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><div class="dock-tooltip">Theme</div>'
-        : '<svg class="icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><div class="dock-tooltip">Theme</div>';
-    }
-
-    /* ===== Zoom compensation (keeps session time text stable under browser zoom) ===== */
-    function syncZoomComp() {
-      const dpr = window.devicePixelRatio || 1;
-      // Higher zoom => higher DPR => reduce font size a bit; clamp to avoid extremes
-      const comp = Math.max(0.70, Math.min(1.15, 1 / dpr));
-      document.documentElement.style.setProperty('--zoom-comp', comp.toFixed(3));
-    }
-    syncZoomComp();
-    window.addEventListener('resize', syncZoomComp);
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', syncZoomComp);
-
-    function toggleTheme() {
-      const current = getTheme();
-      const next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-      updateThemeIcon();
-
-      closePopup();
-      closeTfPopup();
-      generateChartGrid();
-
-      if (currentPanel) {
-        const p = currentPanel;
-        currentPanel = null;
-        openPanel(p);
+      function safeStorageGet(key, fallback = null) {
+        try {
+          const v = localStorage.getItem(key);
+          return v == null ? fallback : v;
+        } catch { return fallback; }
       }
 
-      startTickerAutoFit();
-    }
-
-    // News font scale
-    let newsFontScale = Number(localStorage.getItem('newsFontScale') || '1');
-    if (!Number.isFinite(newsFontScale) || newsFontScale <= 0) newsFontScale = 1;
-
-    function applyNewsFontScale() {
-      document.documentElement.style.setProperty('--news-font-scale', String(newsFontScale));
-      localStorage.setItem('newsFontScale', String(newsFontScale));
-    }
-    applyNewsFontScale();
-
-    function safeIdFromSymbol(symbol) {
-      return symbol.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
-    }
-
-    /* Lazy-load chart widgets */
-    let chartIO = null;
-    let chartLoadQueue = [];
-    let chartLoadScheduled = false;
-
-    function scheduleChartLoad() {
-      if (chartLoadScheduled) return;
-      chartLoadScheduled = true;
-
-      const run = () => {
-        chartLoadScheduled = false;
-
-        const perFrame = 2;
-        for (let i = 0; i < perFrame && chartLoadQueue.length; i++) {
-          const cell = chartLoadQueue.shift();
-          if (cell && cell.isConnected && cell.dataset.loaded !== '1') {
-            cell.dataset.loaded = '1';
-            injectGridChartWidget(cell);
-          }
-        }
-
-        if (chartLoadQueue.length) requestAnimationFrame(run);
-      };
-
-      requestAnimationFrame(run);
-    }
-
-    function queueChartCell(cell) {
-      chartLoadQueue.push(cell);
-      scheduleChartLoad();
-    }
-
-    function setupChartLazyLoad() {
-      if (chartIO) chartIO.disconnect();
-      chartLoadQueue = [];
-      chartLoadScheduled = false;
-
-      const main = document.getElementById('mainContent');
-      if (!main) return;
-
-      chartIO = new IntersectionObserver((entries) => {
-        for (let i = 0; i < entries.length; i++) {
-          const entry = entries[i];
-          if (!entry.isIntersecting) continue;
-
-          const cell = entry.target;
-          if (cell.dataset.loaded === '1') {
-            chartIO.unobserve(cell);
-            continue;
-          }
-
-          chartIO.unobserve(cell);
-          queueChartCell(cell);
-        }
-      }, {
-        root: main,
-        rootMargin: '900px 0px',
-        threshold: 0.01
-      });
-
-      const cells = document.querySelectorAll('.chart-cell[data-symbol]');
-      for (let i = 0; i < cells.length; i++) chartIO.observe(cells[i]);
-    }
-
-    function injectGridChartWidget(cell) {
-      const theme = getTheme();
-      const symbol = cell.dataset.symbol;
-      const interval = cell.dataset.interval;
-
-      const widgetContainer = document.createElement('div');
-      widgetContainer.className = 'tradingview-widget-container';
-      widgetContainer.style.cssText = 'height:100%;width:100%;';
-
-      const widgetDiv = document.createElement('div');
-      widgetDiv.className = 'tradingview-widget-container__widget';
-      widgetDiv.style.cssText = 'height:100%;width:100%;';
-
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-      script.async = true;
-      script.textContent = JSON.stringify({
-        autosize: true,
-        symbol: symbol,
-        interval: interval,
-        timezone: "Etc/UTC",
-        theme: theme,
-        style: "1",
-        locale: "en",
-        hide_top_toolbar: true,
-        hide_side_toolbar: true,
-        hide_legend: true,
-        save_image: false,
-        hide_volume: true,
-        studies: [{ id: "MAExp@tv-basicstudies", inputs: { length: 200 } }]
-      });
-
-      widgetContainer.appendChild(widgetDiv);
-      widgetContainer.appendChild(script);
-      cell.appendChild(widgetContainer);
-    }
-
-    function generateChartGrid() {
-      const main = document.getElementById('mainContent');
-      if (!main) return;
-
-      main.innerHTML = '';
-      const frag = document.createDocumentFragment();
-
-      for (let i = 0; i < SYMBOLS.length; i += 2) {
-        const section = document.createElement('div');
-        section.className = 'chart-section';
-        section.id = `section-${Math.floor(i/2) + 1}`;
-
-        for (let j = 0; j < 2 && (i + j) < SYMBOLS.length; j++) {
-          const sym = SYMBOLS[i + j];
-
-          const row = document.createElement('div');
-          row.className = 'chart-row';
-          row.dataset.symbol = sym.symbol;
-
-          const anchor = document.createElement('div');
-          anchor.className = 'chart-row-anchor';
-          anchor.id = `anchor-${safeIdFromSymbol(sym.symbol)}`;
-          row.appendChild(anchor);
-
-          for (let t = 0; t < TIMEFRAMES.length; t++) {
-            const tf = TIMEFRAMES[t];
-
-            const cell = document.createElement('div');
-            cell.className = 'chart-cell';
-            cell.dataset.symbol = sym.symbol;
-            cell.dataset.interval = tf.interval;
-            cell.dataset.loaded = '0';
-
-            const watermark = document.createElement('div');
-            watermark.className = 'watermark';
-            watermark.innerHTML = `${sym.name}<span class="tf">${tf.label}</span>`;
-            watermark.onclick = () => openPopup(sym.symbol, sym.name);
-
-            const tfSquare = document.createElement('div');
-            tfSquare.className = 'tf-square';
-            tfSquare.textContent = tf.label;
-            tfSquare.title = `Open ${sym.name} ${tf.label}`;
-            tfSquare.addEventListener('click', (e) => {
-              e.stopPropagation();
-              openTfPopup(sym.symbol, sym.name, tf.interval, tf.label);
-            });
-
-            const wmRow = document.createElement('div');
-            wmRow.className = 'wm-row';
-            wmRow.appendChild(watermark);
-            wmRow.appendChild(tfSquare);
-
-            cell.appendChild(wmRow);
-            row.appendChild(cell);
-          }
-
-          section.appendChild(row);
-        }
-
-        frag.appendChild(section);
+      function safeStorageSet(key, value) {
+        try { localStorage.setItem(key, value); } catch { /* ignore */ }
       }
 
-      main.appendChild(frag);
-      setupChartLazyLoad();
-    }
+      function safeIdFromSymbol(symbol) {
+        return String(symbol).replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+      }
 
-    // Panel Management
-    const panel = document.getElementById('sidePanel');
-    const panelTitle = document.getElementById('panelTitle');
-    const panelBody = document.getElementById('panelBody');
-    let currentPanel = null;
+      /* ===================== Theme ===================== */
+      const savedTheme = safeStorageGet('theme', 'dark') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
 
-    const content = {
-      calendar: {
-        title: 'Calendar',
-        icon: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
-        html: `
-          <div class="calendar-container">
-            <div class="calendar-section">
-              <div id="economic-calendar-widget"></div>
-            </div>
-            <div class="sessions-section">
-              <div id="localClock" class="local-clock"></div>
-              <div id="sessionContainer"></div>
-              <div class="hour-labels" id="hourLabels"></div>
-            </div>
-          </div>
-        `
-      },
-      news: {
-        title: 'News',
-        icon: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M10 6h8M10 10h8M10 14h4"/></svg>',
-        html: `
-          <div class="news-container">
-            <div class="news-header">
-              <div id="newsStatus" class="news-status">Loading...</div>
-              <div class="news-controls">
-                <button id="fontDown" class="news-btn" title="Decrease font">A-</button>
-                <button id="fontUp" class="news-btn" title="Increase font">A+</button>
-                <button id="refreshNews" class="news-btn">↻ Refresh</button>
+      function getTheme() {
+        return document.documentElement.getAttribute('data-theme');
+      }
+
+      function updateThemeIcon() {
+        const theme = getTheme();
+        const btn = $('#themeToggle');
+        if (!btn) return;
+
+        // Keep identical markup structure (icon + tooltip) to avoid design changes.
+        btn.innerHTML = theme === 'dark'
+          ? '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><div class="dock-tooltip">Theme</div>'
+          : '<svg class="icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><div class="dock-tooltip">Theme</div>';
+      }
+
+      /* ===== Zoom compensation (keeps session time text stable under browser zoom) ===== */
+      function syncZoomComp() {
+        const dpr = window.devicePixelRatio || 1;
+        const comp = Math.max(0.70, Math.min(1.15, 1 / dpr));
+        document.documentElement.style.setProperty('--zoom-comp', comp.toFixed(3));
+      }
+
+      /* ===================== News font scale ===================== */
+      let newsFontScale = Number(safeStorageGet('newsFontScale', '1'));
+      if (!Number.isFinite(newsFontScale) || newsFontScale <= 0) newsFontScale = 1;
+
+      function applyNewsFontScale() {
+        // Keep within sensible bounds to prevent layout breakage.
+        newsFontScale = Math.max(0.7, Math.min(1.8, Number(newsFontScale) || 1));
+        document.documentElement.style.setProperty('--news-font-scale', String(newsFontScale));
+        safeStorageSet('newsFontScale', String(newsFontScale));
+      }
+      applyNewsFontScale();
+
+      /* ===================== Charts ===================== */
+      // Lazy-load removed by request: charts are injected immediately.
+      // Keep chartIO only for safety in case older code paths reference it.
+      let chartIO = null;
+
+      function setupChartLazyLoad() {
+        // Lazy-load removed: inject every chart widget immediately (no viewport gating).
+        // Keep the same function name so the rest of the app doesn't change.
+        if (chartIO) {
+          try { chartIO.disconnect(); } catch { /* ignore */ }
+        }
+        chartIO = null;
+
+        for (const cell of $$('.chart-cell[data-symbol]')) {
+          if (!cell || !cell.isConnected) continue;
+          if (cell.dataset.loaded === '1') continue;
+          cell.dataset.loaded = '1';
+          injectGridChartWidget(cell);
+        }
+      }
+
+      function injectGridChartWidget(cell) {
+        const theme = getTheme();
+        const symbol = cell.dataset.symbol;
+        const interval = cell.dataset.interval;
+
+        const widgetContainer = document.createElement('div');
+        widgetContainer.className = 'tradingview-widget-container';
+        widgetContainer.style.cssText = 'height:100%;width:100%;';
+
+        const widgetDiv = document.createElement('div');
+        widgetDiv.className = 'tradingview-widget-container__widget';
+        widgetDiv.style.cssText = 'height:100%;width:100%;';
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+        script.async = true;
+        script.textContent = JSON.stringify({
+          autosize: true,
+          symbol,
+          interval,
+          timezone: 'Etc/UTC',
+          theme,
+          style: '1',
+          locale: 'en',
+          hide_top_toolbar: true,
+          hide_side_toolbar: true,
+          hide_legend: true,
+          save_image: false,
+          hide_volume: true,
+          studies: [{ id: 'MAExp@tv-basicstudies', inputs: { length: 200 } }]
+        });
+
+        widgetContainer.appendChild(widgetDiv);
+        widgetContainer.appendChild(script);
+        cell.appendChild(widgetContainer);
+      }
+
+      function generateChartGrid() {
+        const main = $('#mainContent');
+        if (!main) return;
+
+        main.textContent = '';
+        const frag = document.createDocumentFragment();
+
+        for (let i = 0; i < SYMBOLS.length; i += 2) {
+          const section = document.createElement('div');
+          section.className = 'chart-section';
+          section.id = `section-${Math.floor(i / 2) + 1}`;
+
+          for (let j = 0; j < 2 && (i + j) < SYMBOLS.length; j++) {
+            const sym = SYMBOLS[i + j];
+            const row = document.createElement('div');
+            row.className = 'chart-row';
+            row.dataset.symbol = sym.symbol;
+
+            const anchor = document.createElement('div');
+            anchor.className = 'chart-row-anchor';
+            anchor.id = `anchor-${safeIdFromSymbol(sym.symbol)}`;
+            row.appendChild(anchor);
+
+            for (const tf of TIMEFRAMES) {
+              const cell = document.createElement('div');
+              cell.className = 'chart-cell';
+              cell.dataset.symbol = sym.symbol;
+              cell.dataset.interval = tf.interval;
+              cell.dataset.loaded = '0';
+
+              const watermark = document.createElement('div');
+              watermark.className = 'watermark';
+              watermark.innerHTML = `${sym.name}<span class="tf">${tf.label}</span>`;
+              watermark.addEventListener('click', () => openPopup(sym.symbol, sym.name));
+
+              const tfSquare = document.createElement('div');
+              tfSquare.className = 'tf-square';
+              tfSquare.textContent = tf.label;
+              tfSquare.title = `Open ${sym.name} ${tf.label}`;
+              tfSquare.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openTfPopup(sym.symbol, sym.name, tf.interval, tf.label);
+              });
+
+              const wmRow = document.createElement('div');
+              wmRow.className = 'wm-row';
+              wmRow.appendChild(watermark);
+              wmRow.appendChild(tfSquare);
+
+              cell.appendChild(wmRow);
+              row.appendChild(cell);
+            }
+
+            section.appendChild(row);
+          }
+
+          frag.appendChild(section);
+        }
+
+        main.appendChild(frag);
+        setupChartLazyLoad();
+      }
+
+      /* ===================== Panel Management ===================== */
+      const panel = $('#sidePanel');
+      const panelTitle = $('#panelTitle');
+      const panelBody = $('#panelBody');
+      let currentPanel = null;
+
+      const content = {
+        calendar: {
+          title: 'Calendar',
+          icon: '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+          html: `
+            <div class="calendar-container">
+              <div class="calendar-section">
+                <div id="economic-calendar-widget"></div>
+              </div>
+              <div class="sessions-section">
+                <div id="localClock" class="local-clock"></div>
+                <div id="sessionContainer"></div>
+                <div class="hour-labels" id="hourLabels"></div>
               </div>
             </div>
-            <ul id="newsList" class="news-list"></ul>
-          </div>
-        `
-      },
-      heatmap: {
-        title: 'Forex Heatmap',
-        icon: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 2s2.8 3 2.8 6.2c0 1.4-.6 2.6-1.4 3.5-.9 1-2 1.9-2 3.6 0 1.7 1.3 3 3 3 2.6 0 4.6-2.2 4.6-5.1 0-2.2-1.1-4-2.5-5.6"/><path d="M10.4 7.2S7.6 9.8 7.6 13c0 2.9 2 5 4.7 5 1.9 0 3.4-1.4 3.4-3.3 0-1.3-.7-2.2-1.5-3.1-.7-.8-1.4-1.6-1.4-2.8"/></svg>',
-        html: `
-          <div class="heatmap-wrap">
-            <div id="heatmapWidget"></div>
-          </div>
-        `
-      }
-    };
-
-    function openPanel(key) {
-      const data = content[key];
-      if (!data || !panel || !panelTitle || !panelBody) return;
-
-      if (currentPanel === key) {
-        closePanel();
-        return;
-      }
-
-      panel.classList.add('open');
-      panelTitle.innerHTML = `${data.icon}<span>${data.title}</span>`;
-      panelBody.innerHTML = data.html;
-      currentPanel = key;
-
-      const btns = document.querySelectorAll('.dock-btn[data-panel]');
-      for (let i = 0; i < btns.length; i++) {
-        btns[i].classList.toggle('active', btns[i].dataset.panel === key);
-      }
-
-      if (key === 'news') initNewsPanel();
-      if (key === 'calendar') initCalendarPanel();
-      if (key === 'heatmap') initHeatmapPanel();
-    }
-
-    function closePanel() {
-      if (!panel) return;
-      panel.classList.remove('open');
-      currentPanel = null;
-
-      const btns = document.querySelectorAll('.dock-btn[data-panel]');
-      for (let i = 0; i < btns.length; i++) btns[i].classList.remove('active');
-    }
-
-    // Bind dock buttons
-    (function bindDock() {
-      const panelBtns = document.querySelectorAll('.dock-btn[data-panel]');
-      for (let i = 0; i < panelBtns.length; i++) {
-        panelBtns[i].addEventListener('click', function () { openPanel(this.dataset.panel); });
-      }
-
-      const refreshBtn = document.getElementById('refreshBtn');
-      if (refreshBtn) refreshBtn.addEventListener('click', function () { location.reload(); });
-
-      const closeBtn = document.getElementById('closePanel');
-      if (closeBtn) closeBtn.addEventListener('click', closePanel);
-
-      const themeBtn = document.getElementById('themeToggle');
-      if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
-
-      updateThemeIcon();
-    })();
-
-    // Calendar panel
-    let fxVerifyScriptLoaded = false;
-    let fxVerifyScriptLoading = false;
-
-    let calendarSessionsInterval = 0;
-    let calendarClockInterval = 0;
-
-    function loadFxVerifyScript(cb) {
-      if (fxVerifyScriptLoaded) { cb(); return; }
-      if (fxVerifyScriptLoading) {
-        const t = setInterval(function () {
-          if (fxVerifyScriptLoaded) { clearInterval(t); cb(); }
-        }, 50);
-        return;
-      }
-      fxVerifyScriptLoading = true;
-
-      const existing = document.getElementById('fxVerifyCalendarScript');
-      if (existing) {
-        fxVerifyScriptLoaded = true;
-        fxVerifyScriptLoading = false;
-        cb();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.id = 'fxVerifyCalendarScript';
-      script.src = 'https://fxverify.com/Content/remote/remote-calendar-widget.js';
-      script.onload = function () { fxVerifyScriptLoaded = true; fxVerifyScriptLoading = false; cb(); };
-      script.onerror = function () { fxVerifyScriptLoading = false; };
-      document.head.appendChild(script);
-    }
-
-    function initCalendarPanel() {
-      const sessions = [
-        { id: 'sydney', name: 'Sydney', startUTC: 22, endUTC: 7, timezone: 'Australia/Sydney' },
-        { id: 'tokyo', name: 'Tokyo', startUTC: 0, endUTC: 9, timezone: 'Asia/Tokyo' },
-        { id: 'london', name: 'London', startUTC: 8, endUTC: 16, timezone: 'Europe/London' },
-        { id: 'newyork', name: 'New York', startUTC: 13, endUTC: 22, timezone: 'America/New_York' }
-      ];
-
-      function getTimezoneOffset() { return -new Date().getTimezoneOffset() / 60; }
-
-      function isSessionOpen(session) {
-        const now = new Date();
-        const utcHour = now.getUTCHours() + now.getUTCMinutes() / 60;
-        if (session.startUTC > session.endUTC) return utcHour >= session.startUTC || utcHour < session.endUTC;
-        return utcHour >= session.startUTC && utcHour < session.endUTC;
-      }
-
-      function isWeekend() {
-        const now = new Date();
-        const day = now.getUTCDay();
-        const hour = now.getUTCHours();
-        if (day === 6) return true;
-        if (day === 0 && hour < 22) return true;
-        if (day === 5 && hour >= 22) return true;
-        return false;
-      }
-
-      function getLocalTime(timezone) {
-        return new Date().toLocaleTimeString('en-US', {
-          hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone
-        });
-      }
-
-      if (calendarSessionsInterval) clearInterval(calendarSessionsInterval);
-      if (calendarClockInterval) clearInterval(calendarClockInterval);
-
-      function renderClock() {
-        const clock = document.getElementById('localClock');
-        if (!clock) return;
-        clock.textContent = new Date().toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        });
-      }
-
-      function renderSessions() {
-        const container = document.getElementById('sessionContainer');
-        if (!container) return;
-        container.innerHTML = '';
-
-        const offset = getTimezoneOffset();
-
-        for (let i = 0; i < sessions.length; i++) {
-          const session = sessions[i];
-          const open = isSessionOpen(session) && !isWeekend();
-          const localTime = getLocalTime(session.timezone);
-
-          let startLocal = (session.startUTC + offset) % 24;
-          let endLocal = (session.endUTC + offset) % 24;
-          if (startLocal < 0) startLocal += 24;
-          if (endLocal < 0) endLocal += 24;
-
-          const row = document.createElement('div');
-          row.className = 'session-row';
-          row.innerHTML = `
-            <div class="session-label">
-              <span>${session.name}</span>
-              <span class="time">${localTime}</span>
+          `
+        },
+        news: {
+          title: 'News',
+          icon: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M10 6h8M10 10h8M10 14h4"/></svg>',
+          html: `
+            <div class="news-container">
+              <div class="news-header">
+                <div id="newsStatus" class="news-status">Loading...</div>
+                <div class="news-controls">
+                  <button id="fontDown" class="news-btn" title="Decrease font" aria-label="Decrease font">A-</button>
+                  <button id="fontUp" class="news-btn" title="Increase font" aria-label="Increase font">A+</button>
+                  <button id="refreshNews" class="news-btn" aria-label="Refresh news">↻ Refresh</button>
+                </div>
+              </div>
+              <ul id="newsList" class="news-list" aria-label="News list"></ul>
             </div>
-            <div class="session-bar-container" id="bar-${session.id}"></div>
-          `;
-          container.appendChild(row);
+          `
+        },
+        heatmap: {
+          title: 'Forex Heatmap',
+          icon: '<svg class="icon" viewBox="0 0 24 24"><path d="M12 2s2.8 3 2.8 6.2c0 1.4-.6 2.6-1.4 3.5-.9 1-2 1.9-2 3.6 0 1.7 1.3 3 3 3 2.6 0 4.6-2.2 4.6-5.1 0-2.2-1.1-4-2.5-5.6"/><path d="M10.4 7.2S7.6 9.8 7.6 13c0 2.9 2 5 4.7 5 1.9 0 3.4-1.4 3.4-3.3 0-1.3-.7-2.2-1.5-3.1-.7-.8-1.4-1.6-1.4-2.8"/></svg>',
+          html: `
+            <div class="heatmap-wrap">
+              <div id="heatmapWidget"></div>
+            </div>
+          `
+        }
+      };
 
-          const barContainer = row.querySelector(`#bar-${session.id}`);
-          const startPercent = (startLocal / 24) * 100;
-          const endPercent = (endLocal / 24) * 100;
+      function setPanelOpen(isOpen) {
+        if (!panel) return;
+        panel.classList.toggle('open', isOpen);
+        panel.setAttribute('aria-hidden', String(!isOpen));
+      }
 
-          if (startLocal > endLocal) {
-            barContainer.innerHTML = `
-              <div class="session-bar ${session.id} ${open ? '' : 'inactive'}" style="left:${startPercent}%;width:${100-startPercent}%;border-radius:3px 0 0 3px;"></div>
-              <div class="session-bar ${session.id} ${open ? '' : 'inactive'}" style="left:0;width:${endPercent}%;border-radius:0 3px 3px 0;"></div>
-            `;
-          } else {
-            barContainer.innerHTML = `
-              <div class="session-bar ${session.id} ${open ? '' : 'inactive'}" style="left:${startPercent}%;width:${endPercent-startPercent}%;border-radius:3px;"></div>
-            `;
+      function closePanel() {
+        cleanupPanelSideEffects();
+        setPanelOpen(false);
+        currentPanel = null;
+        for (const b of $$('.dock-btn[data-panel]')) b.classList.remove('active');
+      }
+
+      function openPanel(key) {
+        const data = content[key];
+        if (!data || !panel || !panelTitle || !panelBody) return;
+
+        if (currentPanel === key) {
+          closePanel();
+          return;
+        }
+
+        // Cleanup previous panel side-effects (intervals/fetches) before switching.
+        cleanupPanelSideEffects();
+
+        setPanelOpen(true);
+        panelTitle.innerHTML = `${data.icon}<span>${data.title}</span>`;
+        panelBody.innerHTML = data.html;
+        currentPanel = key;
+
+        for (const b of $$('.dock-btn[data-panel]')) {
+          b.classList.toggle('active', b.dataset.panel === key);
+        }
+
+        if (key === 'news') initNewsPanel();
+        if (key === 'calendar') initCalendarPanel();
+        if (key === 'heatmap') initHeatmapPanel();
+      }
+
+      /* ===================== Panel Side-Effect Cleanup ===================== */
+      let calendarSessionsInterval = 0;
+      let calendarClockInterval = 0;
+
+      let newsIntervalId = 0;
+      let newsAbortController = null;
+
+      function cleanupPanelSideEffects() {
+        // Calendar cleanup
+        if (calendarSessionsInterval) clearInterval(calendarSessionsInterval);
+        if (calendarClockInterval) clearInterval(calendarClockInterval);
+        calendarSessionsInterval = 0;
+        calendarClockInterval = 0;
+
+        // News cleanup
+        if (newsIntervalId) clearInterval(newsIntervalId);
+        newsIntervalId = 0;
+        if (newsAbortController) {
+          try { newsAbortController.abort(); } catch { /* ignore */ }
+        }
+        newsAbortController = null;
+      }
+
+      /* ===================== Dock bindings ===================== */
+      function toggleTheme() {
+        const current = getTheme();
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        safeStorageSet('theme', next);
+        updateThemeIcon();
+
+        closePopup();
+        closeTfPopup();
+        generateChartGrid();
+
+        if (currentPanel) {
+          const p = currentPanel;
+          currentPanel = null;
+          openPanel(p);
+        }
+
+        startTickerAutoFit();
+      }
+
+      function bindDock() {
+        const dock = $('#dock');
+        if (!dock) return;
+
+        dock.addEventListener('click', (e) => {
+          const btn = e.target.closest('.dock-btn');
+          if (!btn) return;
+
+          if (btn.dataset.panel) {
+            openPanel(btn.dataset.panel);
+            return;
           }
 
+          if (btn.dataset.action === 'refresh') {
+            location.reload();
+            return;
+          }
+
+          if (btn.dataset.action === 'theme') {
+            toggleTheme();
+            return;
+          }
+        });
+
+        const closeBtn = $('#closePanel');
+        if (closeBtn) closeBtn.addEventListener('click', closePanel);
+
+        updateThemeIcon();
+      }
+
+      /* ===================== Calendar panel ===================== */
+      let fxVerifyScriptLoaded = false;
+      let fxVerifyScriptLoading = false;
+
+      function loadFxVerifyScript(cb) {
+        if (fxVerifyScriptLoaded) { cb(); return; }
+        if (fxVerifyScriptLoading) {
+          const t = setInterval(() => {
+            if (fxVerifyScriptLoaded) { clearInterval(t); cb(); }
+          }, 50);
+          return;
+        }
+        fxVerifyScriptLoading = true;
+
+        const existing = $('#fxVerifyCalendarScript');
+        if (existing) {
+          fxVerifyScriptLoaded = true;
+          fxVerifyScriptLoading = false;
+          cb();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.id = 'fxVerifyCalendarScript';
+        script.src = 'https://fxverify.com/Content/remote/remote-calendar-widget.js';
+        script.onload = () => { fxVerifyScriptLoaded = true; fxVerifyScriptLoading = false; cb(); };
+        script.onerror = () => { fxVerifyScriptLoading = false; };
+        document.head.appendChild(script);
+      }
+
+      function initCalendarPanel() {
+        const sessions = [
+          { id: 'sydney', name: 'Sydney', startUTC: 22, endUTC: 7, timezone: 'Australia/Sydney' },
+          { id: 'tokyo', name: 'Tokyo', startUTC: 0, endUTC: 9, timezone: 'Asia/Tokyo' },
+          { id: 'london', name: 'London', startUTC: 8, endUTC: 16, timezone: 'Europe/London' },
+          { id: 'newyork', name: 'New York', startUTC: 13, endUTC: 22, timezone: 'America/New_York' }
+        ];
+
+        function getTimezoneOffsetHours() {
+          return -new Date().getTimezoneOffset() / 60;
+        }
+
+        function isSessionOpen(session) {
           const now = new Date();
-          const localHour = now.getHours() + now.getMinutes() / 60;
-          const markerPercent = (localHour / 24) * 100;
-          const marker = document.createElement('div');
-          marker.className = 'time-marker';
-          marker.style.left = `${markerPercent}%`;
-          marker.setAttribute('data-time', now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }));
-          barContainer.appendChild(marker);
+          const utcHour = now.getUTCHours() + now.getUTCMinutes() / 60;
+          if (session.startUTC > session.endUTC) return utcHour >= session.startUTC || utcHour < session.endUTC;
+          return utcHour >= session.startUTC && utcHour < session.endUTC;
         }
-      }
 
-      function renderHourLabels() {
-        const container = document.getElementById('hourLabels');
-        if (!container) return;
-        container.innerHTML = '';
-        for (let i = 0; i <= 24; i += 4) {
-          const span = document.createElement('span');
-          span.textContent = String(i % 24).padStart(2, '0');
-          container.appendChild(span);
+        function isWeekend() {
+          const now = new Date();
+          const day = now.getUTCDay();
+          const hour = now.getUTCHours();
+          if (day === 6) return true;
+          if (day === 0 && hour < 22) return true;
+          if (day === 5 && hour >= 22) return true;
+          return false;
         }
-      }
 
-      renderHourLabels();
-      renderClock();
-      renderSessions();
-
-      calendarClockInterval = setInterval(renderClock, 1000);
-      calendarSessionsInterval = setInterval(renderSessions, 60000);
-
-      const theme = getTheme();
-      const calContainer = document.getElementById('economic-calendar-widget');
-      if (calContainer) calContainer.innerHTML = '';
-
-      loadFxVerifyScript(function () {
-        if (typeof RemoteCalendar !== 'undefined') {
-          RemoteCalendar({
-            DefaultTime: "today",
-            DefaultTheme: theme === 'dark' ? 'dark' : 'plain',
-            Url: "https://fxverify.com",
-            SubPath: "economic-calendar",
-            IsShowEmbedButton: false,
-            DefaultCountries: "AU,CA,CH,CN,DE,FR,IT,ES,US,GB,NZ,JP,EU",
-            DefaultImpacts: "HIGH",
-            ContainerId: "economic-calendar-widget"
+        function getLocalTime(timezone) {
+          return new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone
           });
         }
-      });
-    }
 
-    // News panel
-    function initNewsPanel() {
-      const FEEDS = [
-        { name: "News", url: "https://investinglive.com/feed/news/" },
-        { name: "Central Banks", url: "https://investinglive.com/feed/centralbank/" }
-      ];
+        function renderClock() {
+          const clock = $('#localClock');
+          if (!clock) return;
+          clock.textContent = new Date().toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
 
-      const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" });
+        function renderHourLabels() {
+          const container = $('#hourLabels');
+          if (!container) return;
+          container.textContent = '';
+          for (let i = 0; i <= 24; i += 4) {
+            const span = document.createElement('span');
+            span.textContent = String(i % 24).padStart(2, '0');
+            container.appendChild(span);
+          }
+        }
 
-      function stripHtml(html) {
-        const doc = new DOMParser().parseFromString(html || "", "text/html");
-        return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
-      }
+        function renderSessions() {
+          const container = $('#sessionContainer');
+          if (!container) return;
+          container.textContent = '';
 
-      function truncate(text, maxLen = 300) {
-        if (!text || text.length <= maxLen) return text;
-        return text.slice(0, maxLen - 1).trimEnd() + "…";
-      }
+          const offset = getTimezoneOffsetHours();
 
-      async function fetchAndParseRSS(feed) {
-        const res = await fetch(feed.url, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const xmlText = await res.text();
-        const doc = new DOMParser().parseFromString(xmlText, "text/xml");
-        const items = Array.from(doc.querySelectorAll("item"));
+          for (const session of sessions) {
+            const open = isSessionOpen(session) && !isWeekend();
+            const localTime = getLocalTime(session.timezone);
 
-        return items.map(item => {
-          const title = item.querySelector("title")?.textContent?.trim() ?? "(no title)";
-          const link = item.querySelector("link")?.textContent?.trim() ?? "#";
-          const pubDateText = item.querySelector("pubDate")?.textContent?.trim() ?? "";
-          const pubDate = pubDateText ? new Date(pubDateText) : new Date(0);
-          const rawDesc = item.querySelector("description")?.textContent ?? "";
-          const description = truncate(stripHtml(rawDesc), 300);
-          return { source: feed.name, title, link, pubDate, description };
-        }).filter(x => !Number.isNaN(x.pubDate.getTime()));
-      }
+            let startLocal = (session.startUTC + offset) % 24;
+            let endLocal = (session.endUTC + offset) % 24;
+            if (startLocal < 0) startLocal += 24;
+            if (endLocal < 0) endLocal += 24;
 
-      function render(items) {
-        const list = document.getElementById("newsList");
-        if (!list) return;
-        list.innerHTML = "";
+            const row = document.createElement('div');
+            row.className = 'session-row';
 
-        items.forEach(it => {
-          const li = document.createElement("li");
-          li.className = "news-item";
-          li.innerHTML = `
-            <div class="news-title-row">
-              <a href="${it.link}" target="_blank" rel="noopener">${it.title}</a>
-              <span class="news-meta">${it.source} • ${dateFmt.format(it.pubDate)}</span>
-            </div>
-            ${it.description ? `<p class="news-desc">${it.description}</p>` : ''}
-          `;
-          list.appendChild(li);
+            const label = document.createElement('div');
+            label.className = 'session-label';
+
+            const name = document.createElement('span');
+            name.textContent = session.name;
+
+            const time = document.createElement('span');
+            time.className = 'time';
+            time.textContent = localTime;
+
+            label.appendChild(name);
+            label.appendChild(time);
+
+            const barContainer = document.createElement('div');
+            barContainer.className = 'session-bar-container';
+
+            const startPercent = (startLocal / 24) * 100;
+            const endPercent = (endLocal / 24) * 100;
+
+            if (startLocal > endLocal) {
+              const a = document.createElement('div');
+              a.className = `session-bar ${session.id} ${open ? '' : 'inactive'}`;
+              a.style.cssText = `left:${startPercent}%;width:${100 - startPercent}%;border-radius:3px 0 0 3px;`;
+
+              const b = document.createElement('div');
+              b.className = `session-bar ${session.id} ${open ? '' : 'inactive'}`;
+              b.style.cssText = `left:0;width:${endPercent}%;border-radius:0 3px 3px 0;`;
+
+              barContainer.appendChild(a);
+              barContainer.appendChild(b);
+            } else {
+              const bar = document.createElement('div');
+              bar.className = `session-bar ${session.id} ${open ? '' : 'inactive'}`;
+              bar.style.cssText = `left:${startPercent}%;width:${endPercent - startPercent}%;border-radius:3px;`;
+              barContainer.appendChild(bar);
+            }
+
+            const now = new Date();
+            const localHour = now.getHours() + now.getMinutes() / 60;
+            const markerPercent = (localHour / 24) * 100;
+
+            const marker = document.createElement('div');
+            marker.className = 'time-marker';
+            marker.style.left = `${markerPercent}%`;
+            marker.setAttribute('data-time', now.toLocaleTimeString('en-US', {
+              hour: '2-digit', minute: '2-digit', hour12: false
+            }));
+            barContainer.appendChild(marker);
+
+            row.appendChild(label);
+            row.appendChild(barContainer);
+            container.appendChild(row);
+          }
+        }
+
+        renderHourLabels();
+        renderClock();
+        renderSessions();
+
+        calendarClockInterval = setInterval(renderClock, 1000);
+        calendarSessionsInterval = setInterval(renderSessions, 60000);
+
+        const theme = getTheme();
+        const calContainer = $('#economic-calendar-widget');
+        if (calContainer) calContainer.textContent = '';
+
+        loadFxVerifyScript(() => {
+          if (typeof RemoteCalendar !== 'undefined') {
+            RemoteCalendar({
+              DefaultTime: 'today',
+              DefaultTheme: theme === 'dark' ? 'dark' : 'plain',
+              Url: 'https://fxverify.com',
+              SubPath: 'economic-calendar',
+              IsShowEmbedButton: false,
+              DefaultCountries: 'AU,CA,CH,CN,DE,FR,IT,ES,US,GB,NZ,JP,EU',
+              DefaultImpacts: 'HIGH',
+              ContainerId: 'economic-calendar-widget'
+            });
+          }
         });
       }
 
-      async function loadAndRender() {
-        const status = document.getElementById("newsStatus");
-        if (!status) return;
-        try {
-          status.textContent = "Loading...";
-          const results = await Promise.all(FEEDS.map(fetchAndParseRSS));
-          const merged = results.flat().sort((a, b) => b.pubDate - a.pubDate);
-          status.textContent = `${merged.length} items • ${new Date().toLocaleTimeString()}`;
-          render(merged);
-        } catch (err) {
-          status.textContent = `Error: ${err.message}`;
+      /* ===================== News panel ===================== */
+      function initNewsPanel() {
+        const FEEDS = [
+          { name: 'News', url: 'https://investinglive.com/feed/news/' },
+          { name: 'Central Banks', url: 'https://investinglive.com/feed/centralbank/' }
+        ];
+
+        const dateFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+
+        function stripHtml(html) {
+          const doc = new DOMParser().parseFromString(html || '', 'text/html');
+          return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+        }
+
+        function truncate(text, maxLen = 300) {
+          if (!text || text.length <= maxLen) return text;
+          return text.slice(0, maxLen - 1).trimEnd() + '…';
+        }
+
+        function safeUrl(url) {
+          try {
+            const u = new URL(url, location.href);
+            if (u.protocol !== 'http:' && u.protocol !== 'https:') return '#';
+            return u.toString();
+          } catch { return '#'; }
+        }
+
+        async function fetchText(url, { signal } = {}) {
+          // Direct fetch first. If blocked by CORS, fallback to a public CORS relay.
+          try {
+            const res = await fetch(url, { cache: 'no-store', signal });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.text();
+          } catch (e) {
+            // If aborted, propagate.
+            if (signal && signal.aborted) throw e;
+            const relay = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+            const res2 = await fetch(relay, { cache: 'no-store', signal });
+            if (!res2.ok) throw new Error(`HTTP ${res2.status}`);
+            return await res2.text();
+          }
+        }
+
+        async function fetchAndParseRSS(feed, signal) {
+          const xmlText = await fetchText(feed.url, { signal });
+          const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+          const items = Array.from(doc.querySelectorAll('item'));
+
+          return items.map(item => {
+            const title = item.querySelector('title')?.textContent?.trim() ?? '(no title)';
+            const link = safeUrl(item.querySelector('link')?.textContent?.trim() ?? '#');
+            const pubDateText = item.querySelector('pubDate')?.textContent?.trim() ?? '';
+            const pubDate = pubDateText ? new Date(pubDateText) : new Date(0);
+            const rawDesc = item.querySelector('description')?.textContent ?? '';
+            const description = truncate(stripHtml(rawDesc), 300);
+            return { source: feed.name, title, link, pubDate, description };
+          }).filter(x => !Number.isNaN(x.pubDate.getTime()));
+        }
+
+        function render(items) {
+          const list = $('#newsList');
+          if (!list) return;
+          list.textContent = '';
+
+          for (const it of items) {
+            const li = document.createElement('li');
+            li.className = 'news-item';
+
+            const titleRow = document.createElement('div');
+            titleRow.className = 'news-title-row';
+
+            const a = document.createElement('a');
+            a.href = it.link;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = it.title;
+
+            const meta = document.createElement('span');
+            meta.className = 'news-meta';
+            meta.textContent = `${it.source} • ${dateFmt.format(it.pubDate)}`;
+
+            titleRow.appendChild(a);
+            titleRow.appendChild(meta);
+
+            li.appendChild(titleRow);
+
+            if (it.description) {
+              const p = document.createElement('p');
+              p.className = 'news-desc';
+              p.textContent = it.description;
+              li.appendChild(p);
+            }
+
+            list.appendChild(li);
+          }
+        }
+
+        async function loadAndRender() {
+          const status = $('#newsStatus');
+          if (!status) return;
+
+          // Abort any in-flight request to avoid races.
+          if (newsAbortController) {
+            try { newsAbortController.abort(); } catch { /* ignore */ }
+          }
+          newsAbortController = new AbortController();
+
+          try {
+            status.textContent = 'Loading...';
+            const results = await Promise.all(FEEDS.map(f => fetchAndParseRSS(f, newsAbortController.signal)));
+            const merged = results.flat().sort((a, b) => b.pubDate - a.pubDate);
+            status.textContent = `${merged.length} items • ${new Date().toLocaleTimeString()}`;
+            render(merged);
+          } catch (err) {
+            if (newsAbortController?.signal?.aborted) return;
+            status.textContent = `Error: ${err.message || String(err)}`;
+          }
+        }
+
+        const refresh = $('#refreshNews');
+        if (refresh) refresh.addEventListener('click', loadAndRender, { passive: true });
+
+        const down = $('#fontDown');
+        if (down) down.addEventListener('click', () => { newsFontScale -= 0.1; applyNewsFontScale(); }, { passive: true });
+
+        const up = $('#fontUp');
+        if (up) up.addEventListener('click', () => { newsFontScale += 0.1; applyNewsFontScale(); }, { passive: true });
+
+        loadAndRender();
+        newsIntervalId = setInterval(loadAndRender, 60000);
+      }
+
+      /* ===================== Heatmap panel ===================== */
+      function initHeatmapPanel() {
+        const theme = getTheme();
+        const container = $('#heatmapWidget');
+        if (!container) return;
+
+        container.textContent = '';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'tradingview-widget-container';
+        wrap.style.cssText = 'height:100%;width:100%;';
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-forex-heat-map.js';
+        script.async = true;
+
+        const isLight = theme === 'light';
+        script.textContent = JSON.stringify({
+          colorTheme: isLight ? 'light' : 'dark',
+          isTransparent: false,
+          locale: 'en',
+          currencies: ['EUR','USD','JPY','GBP','CHF','AUD','CAD','NZD'],
+          backgroundColor: isLight ? '#ffffff' : '#111827',
+          width: '100%',
+          height: '100%'
+        });
+
+        wrap.appendChild(script);
+        container.appendChild(wrap);
+      }
+
+      /* ===================== Modals ===================== */
+      function injectWidget(containerId, symbol, interval, theme) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.textContent = '';
+
+        const widgetContainer = document.createElement('div');
+        widgetContainer.className = 'tradingview-widget-container';
+        widgetContainer.style.cssText = 'height:100%;width:100%;';
+
+        const widgetDiv = document.createElement('div');
+        widgetDiv.className = 'tradingview-widget-container__widget';
+        widgetDiv.style.cssText = 'height:100%;width:100%;';
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+        script.async = true;
+        script.textContent = JSON.stringify({
+          autosize: true,
+          symbol,
+          interval,
+          timezone: 'Etc/UTC',
+          theme,
+          style: '1',
+          locale: 'en',
+          hide_top_toolbar: false,
+          hide_side_toolbar: false,
+          hide_legend: false,
+          allow_symbol_change: true,
+          save_image: false,
+          calendar: false,
+          hide_volume: true,
+          studies: [{ id: 'MAExp@tv-basicstudies', inputs: { length: 200 } }]
+        });
+
+        widgetContainer.appendChild(widgetDiv);
+        widgetContainer.appendChild(script);
+        container.appendChild(widgetContainer);
+      }
+
+      function openPopup(symbol, name) {
+        $('#modalSymbol').textContent = name || symbol;
+        const theme = getTheme();
+
+        injectWidget('popupLeft', symbol, '15', theme);
+        injectWidget('popupRightTop', symbol, '60', theme);
+        injectWidget('popupRightBottom', symbol, '240', theme);
+        $('#chartModal').style.display = 'block';
+      }
+
+      function closePopup() {
+        const modal = $('#chartModal');
+        if (modal) modal.style.display = 'none';
+        for (const id of ['popupLeft', 'popupRightTop', 'popupRightBottom']) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = '';
         }
       }
 
-      const refresh = document.getElementById("refreshNews");
-      if (refresh) refresh.addEventListener("click", loadAndRender);
-
-      const down = document.getElementById("fontDown");
-      if (down) down.addEventListener("click", () => { newsFontScale -= 0.1; applyNewsFontScale(); });
-
-      const up = document.getElementById("fontUp");
-      if (up) up.addEventListener("click", () => { newsFontScale += 0.1; applyNewsFontScale(); });
-
-      loadAndRender();
-      setInterval(loadAndRender, 60000);
-    }
-
-    // Heatmap panel
-    function initHeatmapPanel() {
-      const theme = getTheme();
-      const container = document.getElementById('heatmapWidget');
-      if (!container) return;
-
-      container.innerHTML = '';
-
-      const wrap = document.createElement('div');
-      wrap.className = 'tradingview-widget-container';
-      wrap.style.cssText = 'height:100%;width:100%;';
-
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-forex-heat-map.js';
-      script.async = true;
-
-      const isLight = theme === 'light';
-      script.textContent = JSON.stringify({
-        colorTheme: isLight ? "light" : "dark",
-        isTransparent: false,
-        locale: "en",
-        currencies: ["EUR","USD","JPY","GBP","CHF","AUD","CAD","NZD"],
-        backgroundColor: isLight ? "#ffffff" : "#111827",
-        width: "100%",
-        height: "100%"
-      });
-
-      wrap.appendChild(script);
-      container.appendChild(wrap);
-    }
-
-    // Modal
-    function openPopup(symbol, name) {
-      document.getElementById('modalSymbol').textContent = name || symbol;
-      const theme = getTheme();
-
-      injectWidget('popupLeft', symbol, '15', theme);
-      injectWidget('popupRightTop', symbol, '60', theme);
-      injectWidget('popupRightBottom', symbol, '240', theme);
-      document.getElementById('chartModal').style.display = 'block';
-    }
-
-    function injectWidget(containerId, symbol, interval, theme) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = '';
-
-      const widgetContainer = document.createElement('div');
-      widgetContainer.className = 'tradingview-widget-container';
-      widgetContainer.style.cssText = 'height:100%;width:100%;';
-
-      const widgetDiv = document.createElement('div');
-      widgetDiv.className = 'tradingview-widget-container__widget';
-      widgetDiv.style.cssText = 'height:100%;width:100%;';
-
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-      script.async = true;
-      script.textContent = JSON.stringify({
-        autosize: true,
-        symbol: symbol,
-        interval: interval,
-        timezone: "Etc/UTC",
-        theme: theme,
-        style: "1",
-        locale: "en",
-        hide_top_toolbar: false,
-        hide_side_toolbar: false,
-        hide_legend: false,
-        allow_symbol_change: true,
-        save_image: false,
-        calendar: false,
-        hide_volume: true,
-        studies: [{ id: "MAExp@tv-basicstudies", inputs: { length: 200 } }]
-      });
-
-      widgetContainer.appendChild(widgetDiv);
-      widgetContainer.appendChild(script);
-      container.appendChild(widgetContainer);
-    }
-
-    function closePopup() {
-      document.getElementById('chartModal').style.display = 'none';
-      ['popupLeft', 'popupRightTop', 'popupRightBottom'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = '';
-      });
-    }
-
-    function openTfPopup(symbol, name, interval, tfLabel) {
-      const theme = getTheme();
-      const title = `${name || symbol} • ${tfLabel || interval}`;
-      document.getElementById('tfModalSymbol').textContent = title;
-
-      injectWidget('tfPopupMain', symbol, interval, theme);
-      document.getElementById('tfChartModal').style.display = 'block';
-    }
-
-    function closeTfPopup() {
-      const modal = document.getElementById('tfChartModal');
-      if (modal) modal.style.display = 'none';
-
-      const el = document.getElementById('tfPopupMain');
-      if (el) el.innerHTML = '';
-    }
-
-    window.openPopup = openPopup;
-    window.closePopup = closePopup;
-    window.openTfPopup = openTfPopup;
-    window.closeTfPopup = closeTfPopup;
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      switch(e.key.toLowerCase()) {
-        case 'escape':
-          closePopup();
-          closeTfPopup();
-          closePanel();
-          break;
-        case 'c':
-          openPanel('calendar');
-          break;
-        case 'n':
-          openPanel('news');
-          break;
-        case 'h':
-          openPanel('heatmap');
-          break;
-        case 't':
-          toggleTheme();
-          break;
+      function openTfPopup(symbol, name, interval, tfLabel) {
+        const theme = getTheme();
+        $('#tfModalSymbol').textContent = `${name || symbol} • ${tfLabel || interval}`;
+        injectWidget('tfPopupMain', symbol, interval, theme);
+        $('#tfChartModal').style.display = 'block';
       }
-    });
 
-    /* ===== Topbar Auto-fit (zoom IN + OUT) ===== */
-    let fitRaf = 0;
-
-    function autoFitTickersNow() {
-      const viewport = document.getElementById("tickerViewport");
-      const strip = document.getElementById("tickerStrip");
-      if (!viewport || !strip) return;
-
-      strip.style.transform = "scale(1)";
-
-      const viewportWidth = viewport.clientWidth;
-      const stripWidth = strip.scrollWidth;
-      if (!stripWidth || !viewportWidth) return;
-
-      const safety = 0.985;
-
-      const minScale = 0.6;
-      const maxScale = 1.25;
-      const raw = (viewportWidth / stripWidth) * safety;
-      const scale = Math.max(minScale, Math.min(maxScale, raw));
-
-      strip.style.transform = `scale(${scale})`;
-    }
-
-    function scheduleTickerFit() {
-      if (fitRaf) return;
-      fitRaf = requestAnimationFrame(() => {
-        fitRaf = 0;
-        autoFitTickersNow();
-      });
-    }
-
-    function startTickerAutoFit() {
-      scheduleTickerFit();
-      setTimeout(scheduleTickerFit, 200);
-      setTimeout(scheduleTickerFit, 500);
-      setTimeout(scheduleTickerFit, 900);
-      setTimeout(scheduleTickerFit, 1400);
-      setTimeout(scheduleTickerFit, 2200);
-    }
-
-    function scrollToSymbol(symbol) {
-      const anchorId = `anchor-${safeIdFromSymbol(symbol)}`;
-      const anchor = document.getElementById(anchorId);
-      const main = document.getElementById('mainContent');
-      if (!anchor || !main) return;
-
-      const mainRect = main.getBoundingClientRect();
-      const anchorRect = anchor.getBoundingClientRect();
-      const delta = anchorRect.top - mainRect.top;
-      main.scrollBy({ top: delta - 6, behavior: 'smooth' });
-    }
-
-    const tickerStrip = document.getElementById('tickerStrip');
-    if (tickerStrip) {
-      tickerStrip.addEventListener('click', (e) => {
-        let el = e.target;
-        while (el && el !== tickerStrip && el.tagName !== 'TV-TICKER-TAG') el = el.parentNode;
-        if (!el || el === tickerStrip || el.tagName !== 'TV-TICKER-TAG') return;
-
-        const sym = el.getAttribute('symbol');
-        if (sym) scrollToSymbol(sym);
-      });
-    }
-
-    if (window.ResizeObserver) {
-      const viewport = document.getElementById("tickerViewport");
-      if (viewport) {
-        const ro = new ResizeObserver(() => scheduleTickerFit());
-        ro.observe(viewport);
+      function closeTfPopup() {
+        const modal = $('#tfChartModal');
+        if (modal) modal.style.display = 'none';
+        const el = $('#tfPopupMain');
+        if (el) el.textContent = '';
       }
-    } else {
-      window.addEventListener("resize", scheduleTickerFit);
-    }
 
-    // Initialize
-    generateChartGrid();
-    window.addEventListener("load", () => { startTickerAutoFit(); });
+      // Backdrop click to close (no visual changes).
+      function bindModalClose() {
+        const chartModal = $('#chartModal');
+        const tfModal = $('#tfChartModal');
+
+        $('#closeChartModal')?.addEventListener('click', closePopup);
+        $('#closeTfChartModal')?.addEventListener('click', closeTfPopup);
+
+        chartModal?.addEventListener('click', (e) => {
+          if (e.target === chartModal) closePopup();
+        });
+
+        tfModal?.addEventListener('click', (e) => {
+          if (e.target === tfModal) closeTfPopup();
+        });
+      }
+
+      // Expose for existing inline compatibility if needed.
+      window.openPopup = openPopup;
+      window.closePopup = closePopup;
+      window.openTfPopup = openTfPopup;
+      window.closeTfPopup = closeTfPopup;
+
+      /* ===================== Keyboard shortcuts ===================== */
+      function bindKeyboard() {
+        document.addEventListener('keydown', (e) => {
+          const tag = (e.target && e.target.tagName) ? e.target.tagName : '';
+          if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+          switch (String(e.key).toLowerCase()) {
+            case 'escape':
+              closePopup();
+              closeTfPopup();
+              closePanel();
+              break;
+            case 'c':
+              openPanel('calendar');
+              break;
+            case 'n':
+              openPanel('news');
+              break;
+            case 'h':
+              openPanel('heatmap');
+              break;
+            case 't':
+              toggleTheme();
+              break;
+          }
+        }, { passive: true });
+      }
+
+      /* ===================== Topbar Auto-fit ===================== */
+      let fitRaf = 0;
+
+      function autoFitTickersNow() {
+        const viewport = $('#tickerViewport');
+        const strip = $('#tickerStrip');
+        if (!viewport || !strip) return;
+
+        strip.style.transform = 'scale(1)';
+
+        const viewportWidth = viewport.clientWidth;
+        const stripWidth = strip.scrollWidth;
+        if (!stripWidth || !viewportWidth) return;
+
+        const safety = 0.985;
+        const minScale = 0.6;
+        const maxScale = 1.25;
+        const raw = (viewportWidth / stripWidth) * safety;
+        const scale = Math.max(minScale, Math.min(maxScale, raw));
+
+        strip.style.transform = `scale(${scale})`;
+      }
+
+      function scheduleTickerFit() {
+        if (fitRaf) return;
+        fitRaf = requestAnimationFrame(() => {
+          fitRaf = 0;
+          autoFitTickersNow();
+        });
+      }
+
+      function startTickerAutoFit() {
+        scheduleTickerFit();
+        setTimeout(scheduleTickerFit, 200);
+        setTimeout(scheduleTickerFit, 500);
+        setTimeout(scheduleTickerFit, 900);
+        setTimeout(scheduleTickerFit, 1400);
+        setTimeout(scheduleTickerFit, 2200);
+      }
+
+      function bindTickerEvents() {
+        const tickerStrip = $('#tickerStrip');
+        if (!tickerStrip) return;
+
+        // NOTE: tv-ticker-tag renders in Shadow DOM; e.target is often inside the shadow tree.
+        // Use composedPath() to reliably find the host element.
+        tickerStrip.addEventListener('click', (e) => {
+          const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+          const host = path.find(n => n && n.tagName === 'TV-TICKER-TAG')
+            || (e.target && e.target.closest ? e.target.closest('tv-ticker-tag') : null);
+
+          if (!host) return;
+          const sym = host.getAttribute('symbol');
+          if (sym) scrollToSymbol(sym);
+        }, { passive: true });
+
+        // Resize-based fitting
+        const viewport = $('#tickerViewport');
+        if (window.ResizeObserver && viewport) {
+          const ro = new ResizeObserver(() => scheduleTickerFit());
+          ro.observe(viewport);
+        } else {
+          window.addEventListener('resize', scheduleTickerFit, { passive: true });
+        }
+
+        // MutationObserver: tv-ticker-tag updates size after hydration.
+        if (window.MutationObserver && tickerStrip) {
+          const mo = new MutationObserver(() => scheduleTickerFit());
+          mo.observe(tickerStrip, { childList: true, subtree: true, attributes: true });
+          setTimeout(() => mo.disconnect(), 4000);
+        }
+      }
+
+      function scrollToSymbol(symbol) {
+        const main = $('#mainContent');
+        if (!main) return;
+
+        const anchor = document.getElementById(`anchor-${safeIdFromSymbol(symbol)}`);
+        if (!anchor) return;
+
+        // The anchor is absolutely positioned (top:0), so offsetTop is not usable.
+        // Use bounding boxes to compute the correct scroll target.
+        const mainRect = main.getBoundingClientRect();
+        const anchorRect = anchor.getBoundingClientRect();
+        const targetTop = main.scrollTop + (anchorRect.top - mainRect.top);
+
+        main.scrollTo({ top: Math.max(0, targetTop - 6), behavior: 'smooth' });
+      }
+
+      /* ===================== Init ===================== */
+      function init() {
+        syncZoomComp();
+        window.addEventListener('resize', syncZoomComp, { passive: true });
+        window.visualViewport?.addEventListener('resize', syncZoomComp, { passive: true });
+
+        bindDock();
+        bindModalClose();
+        bindKeyboard();
+        bindTickerEvents();
+
+        generateChartGrid();
+
+        window.addEventListener('load', () => startTickerAutoFit(), { once: true });
+
+        // Minor robustness: refit on tab restore.
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) startTickerAutoFit();
+        }, { passive: true });
+      }
+
+      init();
+    })();
   </script>
 </body>
 </html>
