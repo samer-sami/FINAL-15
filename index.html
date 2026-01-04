@@ -40,6 +40,9 @@
       --news-text: #f9fafb;
       --news-text-secondary: #e5e7eb;
       --news-text-muted: #d1d5db;
+
+      /* Zoom compensation for session time font-size */
+      --zoom-comp: 1;
     }
 
     [data-theme="light"] {
@@ -384,10 +387,10 @@
     .sessions-section {
       flex: 0 0 25%;
       height: 25%;
-      padding: 6px 10px 6px; /* tightened so it fits without cropping */
+      padding: 6px 10px 6px;
       border-top: 1px solid var(--border-color);
       background: var(--bg-tertiary);
-      overflow: hidden; /* no scrolling */
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       min-height: 110px;
@@ -399,16 +402,6 @@
       overflow: hidden;
       background: var(--bg-secondary);
       position: relative;
-    }
-
-    .section-title {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      flex: 0 0 auto;
     }
 
     /* Fit sessions in container without scrolling */
@@ -435,7 +428,7 @@
     }
 
     .session-label .time {
-      font-size: 9px;
+      font-size: calc(9px * var(--zoom-comp));
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
     }
@@ -492,7 +485,7 @@
       flex: 0 0 auto;
       display: flex;
       justify-content: space-between;
-      margin-top: 2px; /* tightened to avoid cropping */
+      margin-top: 2px;
       padding-left: 86px;
     }
     .hour-labels span { font-size: 9px; color: var(--text-muted); }
@@ -505,7 +498,6 @@
     }
 
     /* Calendar high-contrast text + smaller clock */
-    .calendar-container .section-title,
     .calendar-container .session-label,
     .calendar-container .session-label .time,
     .calendar-container .hour-labels span,
@@ -518,8 +510,8 @@
       text-align: center;
       font-weight: 700;
       line-height: 1.05;
-      font-size: clamp(12px, 1.6vw, 16px); /* smaller */
-      margin: 0 0 4px; /* tighter */
+      font-size: clamp(12px, 1.6vw, 16px);
+      margin: 0 0 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -869,6 +861,17 @@
         ? '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><div class="dock-tooltip">Theme</div>'
         : '<svg class="icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><div class="dock-tooltip">Theme</div>';
     }
+
+    /* ===== Zoom compensation (keeps session time text stable under browser zoom) ===== */
+    function syncZoomComp() {
+      const dpr = window.devicePixelRatio || 1;
+      // Higher zoom => higher DPR => reduce font size a bit; clamp to avoid extremes
+      const comp = Math.max(0.70, Math.min(1.15, 1 / dpr));
+      document.documentElement.style.setProperty('--zoom-comp', comp.toFixed(3));
+    }
+    syncZoomComp();
+    window.addEventListener('resize', syncZoomComp);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', syncZoomComp);
 
     function toggleTheme() {
       const current = getTheme();
