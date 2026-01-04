@@ -27,7 +27,7 @@
 
       --dock-w: 42px;
 
-      /* Topbar (provided layout) */
+      /* Topbar */
       --topbar-height: 42px;
       --topbar-bg: #0b0f1a;
       --topbar-border: rgba(255, 255, 255, 0.12);
@@ -70,7 +70,7 @@
     ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
 
-    /* ===== Topbar (use provided structure) ===== */
+    /* Topbar */
     .topbar {
       position: fixed;
       top: 0;
@@ -112,7 +112,7 @@
       cursor: pointer;
     }
 
-    /* Dock (sidebar icons) */
+    /* Dock */
     .dock {
       position: fixed;
       right: 0;
@@ -127,11 +127,7 @@
       padding: 6px;
     }
 
-    .dock-section {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
+    .dock-section { display: flex; flex-direction: column; gap: 4px; }
 
     .dock-section + .dock-section {
       margin-top: auto;
@@ -161,15 +157,8 @@
       position: relative;
     }
 
-    .dock-btn:hover {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-    }
-
-    .dock-btn.active {
-      background: var(--accent-blue);
-      color: white;
-    }
+    .dock-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .dock-btn.active { background: var(--accent-blue); color: white; }
 
     .dock-btn .icon {
       width: 18px;
@@ -201,7 +190,7 @@
 
     .dock-btn:hover .dock-tooltip { opacity: 1; }
 
-    /* Main Content */
+    /* Main */
     main {
       position: fixed;
       top: var(--topbar-height);
@@ -213,7 +202,7 @@
       z-index: 1;
     }
 
-    /* Chart Grid */
+    /* Charts */
     .chart-section {
       width: 100%;
       height: calc(100vh - var(--topbar-height));
@@ -268,19 +257,10 @@
       transition: all var(--anim);
     }
 
-    .watermark:hover {
-      background: var(--accent-blue);
-      border-color: var(--accent-blue);
-      color: white;
-    }
+    .watermark:hover { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+    .watermark .tf { font-size: 9px; margin-left: 4px; opacity: 0.7; }
 
-    .watermark .tf {
-      font-size: 9px;
-      margin-left: 4px;
-      opacity: 0.7;
-    }
-
-    /* Panel (opens from right, 75%) */
+    /* Panel */
     .panel {
       position: fixed;
       top: var(--topbar-height);
@@ -339,11 +319,7 @@
       transition: all var(--anim);
     }
 
-    .close-btn:hover {
-      background: var(--accent-red);
-      border-color: var(--accent-red);
-      color: white;
-    }
+    .close-btn:hover { background: var(--accent-red); border-color: var(--accent-red); color: white; }
 
     .panel-body {
       flex: 1;
@@ -628,13 +604,9 @@
     }
 
     .modal-body { flex: 1; display: flex; min-height: 0; }
-
     .modal-left { flex: 1; border-right: 1px solid var(--border-color); position: relative; }
-
     .modal-right { flex: 1; display: flex; flex-direction: column; }
-
     .modal-right-top, .modal-right-bottom { flex: 1; position: relative; }
-
     .modal-right-top { border-bottom: 1px solid var(--border-color); }
 
     @media (max-width: 768px) {
@@ -650,7 +622,7 @@
   <!-- TradingView Ticker Script (include once) -->
   <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tag.js"></script>
 
-  <!-- Top Bar (provided structure) -->
+  <!-- Top Bar -->
   <div class="topbar">
     <div class="ticker-viewport" id="tickerViewport">
       <div class="ticker-strip" id="tickerStrip">
@@ -804,7 +776,7 @@
       updateThemeIcon();
 
       closePopup();
-      generateChartGrid();
+      generateChartGrid(); // will lazy-load again
 
       if (currentPanel) {
         const p = currentPanel;
@@ -812,7 +784,6 @@
         openPanel(p);
       }
 
-      // Re-fit tickers after theme switch (widgets may re-render)
       startTickerAutoFit();
     }
 
@@ -830,13 +801,120 @@
       return symbol.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
     }
 
-    // Generate Charts
+    /* ====== Performance optimization: Lazy-load chart widgets ====== */
+    let chartIO = null;
+    let chartLoadQueue = [];
+    let chartLoadScheduled = false;
+
+    function scheduleChartLoad() {
+      if (chartLoadScheduled) return;
+      chartLoadScheduled = true;
+
+      const run = () => {
+        chartLoadScheduled = false;
+
+        // Load only a few widgets per frame to keep Firefox responsive.
+        const perFrame = 2;
+        for (let i = 0; i < perFrame && chartLoadQueue.length; i++) {
+          const cell = chartLoadQueue.shift();
+          if (cell && cell.isConnected && cell.dataset.loaded !== '1') {
+            cell.dataset.loaded = '1';
+            injectGridChartWidget(cell);
+          }
+        }
+
+        if (chartLoadQueue.length) {
+          requestAnimationFrame(run);
+        }
+      };
+
+      requestAnimationFrame(run);
+    }
+
+    function queueChartCell(cell) {
+      chartLoadQueue.push(cell);
+      scheduleChartLoad();
+    }
+
+    function setupChartLazyLoad() {
+      if (chartIO) chartIO.disconnect();
+      chartLoadQueue = [];
+      chartLoadScheduled = false;
+
+      const main = document.getElementById('mainContent');
+      if (!main) return;
+
+      chartIO = new IntersectionObserver((entries) => {
+        for (let i = 0; i < entries.length; i++) {
+          const entry = entries[i];
+          if (!entry.isIntersecting) continue;
+
+          const cell = entry.target;
+          if (cell.dataset.loaded === '1') {
+            chartIO.unobserve(cell);
+            continue;
+          }
+
+          chartIO.unobserve(cell);
+          queueChartCell(cell);
+        }
+      }, {
+        root: main,
+        rootMargin: '900px 0px', // preload ahead of scroll
+        threshold: 0.01
+      });
+
+      const cells = document.querySelectorAll('.chart-cell[data-symbol]');
+      for (let i = 0; i < cells.length; i++) {
+        chartIO.observe(cells[i]);
+      }
+    }
+
+    function injectGridChartWidget(cell) {
+      const theme = getTheme();
+      const symbol = cell.dataset.symbol;
+      const interval = cell.dataset.interval;
+
+      const widgetContainer = document.createElement('div');
+      widgetContainer.className = 'tradingview-widget-container';
+      widgetContainer.style.cssText = 'height:100%;width:100%;';
+
+      const widgetDiv = document.createElement('div');
+      widgetDiv.className = 'tradingview-widget-container__widget';
+      widgetDiv.style.cssText = 'height:100%;width:100%;';
+
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+      script.async = true;
+      script.textContent = JSON.stringify({
+        autosize: true,
+        symbol: symbol,
+        interval: interval,
+        timezone: "Etc/UTC",
+        theme: theme,
+        style: "1",
+        locale: "en",
+        hide_top_toolbar: true,
+        hide_side_toolbar: true,
+        hide_legend: true,
+        save_image: false,
+        hide_volume: true,
+        studies: [{ id: "MAExp@tv-basicstudies", inputs: { length: 200 } }]
+      });
+
+      widgetContainer.appendChild(widgetDiv);
+      widgetContainer.appendChild(script);
+      cell.appendChild(widgetContainer);
+    }
+
+    // Generate chart grid (placeholders only; widgets load lazily)
     function generateChartGrid() {
       const main = document.getElementById('mainContent');
       if (!main) return;
 
       main.innerHTML = '';
-      const theme = getTheme();
+      const frag = document.createDocumentFragment();
 
       for (let i = 0; i < SYMBOLS.length; i += 2) {
         const section = document.createElement('div');
@@ -855,55 +933,32 @@
           anchor.id = `anchor-${safeIdFromSymbol(sym.symbol)}`;
           row.appendChild(anchor);
 
-          TIMEFRAMES.forEach(tf => {
+          for (let t = 0; t < TIMEFRAMES.length; t++) {
+            const tf = TIMEFRAMES[t];
+
             const cell = document.createElement('div');
             cell.className = 'chart-cell';
+            cell.dataset.symbol = sym.symbol;
+            cell.dataset.interval = tf.interval;
+            cell.dataset.loaded = '0';
 
             const watermark = document.createElement('div');
             watermark.className = 'watermark';
             watermark.innerHTML = `${sym.name}<span class="tf">${tf.label}</span>`;
             watermark.onclick = () => openPopup(sym.symbol, sym.name);
 
-            const widgetContainer = document.createElement('div');
-            widgetContainer.className = 'tradingview-widget-container';
-            widgetContainer.style.cssText = 'height:100%;width:100%;';
-
-            const widgetDiv = document.createElement('div');
-            widgetDiv.className = 'tradingview-widget-container__widget';
-            widgetDiv.style.cssText = 'height:100%;width:100%;';
-
-            const script = document.createElement('script');
-            script.type = 'text/javascript';
-            script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-            script.async = true;
-            script.textContent = JSON.stringify({
-              autosize: true,
-              symbol: sym.symbol,
-              interval: tf.interval,
-              timezone: "Etc/UTC",
-              theme: theme,
-              style: "1",
-              locale: "en",
-              hide_top_toolbar: true,
-              hide_side_toolbar: true,
-              hide_legend: true,
-              save_image: false,
-              hide_volume: true,
-              studies: [{ id: "MAExp@tv-basicstudies", inputs: { length: 200 } }]
-            });
-
-            widgetContainer.appendChild(widgetDiv);
-            widgetContainer.appendChild(script);
             cell.appendChild(watermark);
-            cell.appendChild(widgetContainer);
             row.appendChild(cell);
-          });
+          }
 
           section.appendChild(row);
         }
 
-        main.appendChild(section);
+        frag.appendChild(section);
       }
+
+      main.appendChild(frag);
+      setupChartLazyLoad();
     }
 
     // Panel Management
@@ -994,9 +1049,7 @@
     (function bindDock() {
       const panelBtns = document.querySelectorAll('.dock-btn[data-panel]');
       for (let i = 0; i < panelBtns.length; i++) {
-        panelBtns[i].addEventListener('click', function () {
-          openPanel(this.dataset.panel);
-        });
+        panelBtns[i].addEventListener('click', function () { openPanel(this.dataset.panel); });
       }
 
       const refreshBtn = document.getElementById('refreshBtn');
@@ -1036,11 +1089,7 @@
       const script = document.createElement('script');
       script.id = 'fxVerifyCalendarScript';
       script.src = 'https://fxverify.com/Content/remote/remote-calendar-widget.js';
-      script.onload = function () {
-        fxVerifyScriptLoaded = true;
-        fxVerifyScriptLoading = false;
-        cb();
-      };
+      script.onload = function () { fxVerifyScriptLoaded = true; fxVerifyScriptLoading = false; cb(); };
       script.onerror = function () { fxVerifyScriptLoading = false; };
       document.head.appendChild(script);
     }
@@ -1367,76 +1416,42 @@
       }
     });
 
-    // ===== Topbar Auto-fit (improved: auto zoom-out/adjust when widgets finish rendering) =====
-    function autoFitTickers() {
+    /* ===== Topbar Auto-fit (optimized: no mutation observer / no long interval loop) ===== */
+    let fitRaf = 0;
+
+    function autoFitTickersNow() {
       const viewport = document.getElementById("tickerViewport");
       const strip = document.getElementById("tickerStrip");
-      if (!viewport || !strip) return 1;
+      if (!viewport || !strip) return;
 
-      // reset to natural size to measure
       strip.style.transform = "scale(1)";
 
       const viewportWidth = viewport.clientWidth;
       const stripWidth = strip.scrollWidth;
-
-      if (!stripWidth || !viewportWidth) return 1;
+      if (!stripWidth || !viewportWidth) return;
 
       const safety = 0.985;
       const scale = Math.min(1, (viewportWidth / stripWidth) * safety);
 
       strip.style.transform = `scale(${scale})`;
-      return scale;
     }
 
-    let tickerFitObserversStarted = false;
+    function scheduleTickerFit() {
+      if (fitRaf) return;
+      fitRaf = requestAnimationFrame(() => {
+        fitRaf = 0;
+        autoFitTickersNow();
+      });
+    }
+
     function startTickerAutoFit() {
-      if (tickerFitObserversStarted) {
-        // still do a few passes
-        autoFitTickers();
-      } else {
-        tickerFitObserversStarted = true;
-      }
-
-      autoFitTickers();
-
-      // Multi-pass fit while TradingView widgets render asynchronously
-      let attempts = 0;
-      let stableCount = 0;
-      let lastScale = null;
-
-      const interval = setInterval(() => {
-        attempts++;
-        const s = autoFitTickers();
-        if (lastScale !== null && Math.abs(s - lastScale) < 0.0005) {
-          stableCount++;
-        } else {
-          stableCount = 0;
-        }
-        lastScale = s;
-
-        if (stableCount >= 6 || attempts >= 80) { // ~ up to 20s max, stops earlier if stable
-          clearInterval(interval);
-        }
-      }, 250);
-
-      const viewport = document.getElementById("tickerViewport");
-      const strip = document.getElementById("tickerStrip");
-
-      if (window.ResizeObserver && viewport && strip) {
-        if (!viewport._tvRO) {
-          viewport._tvRO = new ResizeObserver(() => autoFitTickers());
-          viewport._tvRO.observe(viewport);
-        }
-        if (!strip._tvRO) {
-          strip._tvRO = new ResizeObserver(() => autoFitTickers());
-          strip._tvRO.observe(strip);
-        }
-      }
-
-      if (window.MutationObserver && strip && !strip._tvMO) {
-        strip._tvMO = new MutationObserver(() => autoFitTickers());
-        strip._tvMO.observe(strip, { childList: true, subtree: true, attributes: true });
-      }
+      scheduleTickerFit();
+      // A few light passes while TV widgets render async (bounded)
+      setTimeout(scheduleTickerFit, 200);
+      setTimeout(scheduleTickerFit, 500);
+      setTimeout(scheduleTickerFit, 900);
+      setTimeout(scheduleTickerFit, 1400);
+      setTimeout(scheduleTickerFit, 2200);
     }
 
     function scrollToSymbol(symbol) {
@@ -1463,16 +1478,35 @@
       });
     }
 
+    if (window.ResizeObserver) {
+      const viewport = document.getElementById("tickerViewport");
+      if (viewport) {
+        const ro = new ResizeObserver(() => scheduleTickerFit());
+        ro.observe(viewport);
+      }
+    } else {
+      window.addEventListener("resize", scheduleTickerFit);
+    }
+
     // Initialize
     generateChartGrid();
 
     window.addEventListener("load", () => {
       startTickerAutoFit();
     });
+  </script>
 
-    window.addEventListener("resize", () => {
-      autoFitTickers();
-    });
+  <script>
+    // Panel binding (kept last to avoid blocking)
+    function closePanel() {
+      const panel = document.getElementById('sidePanel');
+      if (!panel) return;
+      panel.classList.remove('open');
+      window.currentPanel = null;
+
+      const btns = document.querySelectorAll('.dock-btn[data-panel]');
+      for (let i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    }
   </script>
 </body>
 </html>
