@@ -37,7 +37,6 @@
       --anim: 0.12s;
 
       --news-font-scale: 1;
-
       --calendar-text: #ffffff;
 
       --news-text: #f9fafb;
@@ -204,6 +203,23 @@
     }
     .dock-btn:hover .dock-tooltip { opacity: 1; }
 
+    /* Small brand logo under Refresh button */
+    .dock-brand {
+      width: calc(var(--dock-w) - 16px);
+      height: calc(var(--dock-w) - 16px);
+      max-width: 30px;
+      max-height: 30px;
+      margin: 8px auto 0;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      padding: 3px;
+      opacity: 0.92;
+      transition: opacity var(--anim), transform var(--anim);
+    }
+    .dock-brand:hover { opacity: 1; transform: translateY(-1px); }
+
     /* Main */
     main {
       position: fixed;
@@ -255,7 +271,7 @@
       height: 100%;
     }
 
-    /* Watermark + TF square row (same level, square AFTER watermark) */
+    /* Watermark + TF square row */
     .wm-row {
       position: absolute;
       top: 3px;
@@ -407,7 +423,6 @@
       position: relative;
     }
 
-    /* Fit sessions in container without scrolling */
     #sessionContainer {
       flex: 1 1 auto;
       min-height: 0;
@@ -500,7 +515,6 @@
       position: relative;
     }
 
-    /* Calendar high-contrast text + smaller clock */
     .calendar-container .session-label,
     .calendar-container .session-label .time,
     .calendar-container .hour-labels span,
@@ -705,10 +719,207 @@
         transition: none !important;
       }
     }
+
+    /* =========================
+       PRELOADER OVERLAY (25s)
+       Requires: dashboard.png + investanza.png next to this HTML.
+       ========================= */
+    #preloadOverlay{
+      position: fixed;
+      inset: 0;
+      z-index: 20000; /* above topbar (9999) */
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      pointer-events: all;
+
+      /* JS drives this from 1 -> 0 over 25s */
+      --preloadCoverOpacity: 1;
+    }
+
+    /* Dashboard image */
+    #preloadOverlay::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: url("dashboard.png") center / cover no-repeat;
+      z-index: 0;
+    }
+
+    /* Black cover: fades OUT from 1 -> 0 */
+    #preloadOverlay::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:#000;
+      opacity: var(--preloadCoverOpacity);
+      will-change: opacity;
+      z-index: 1;
+    }
+
+    #preloadOverlay .preload-stack{
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      text-align: center;
+    }
+
+    .preload-card{
+      width: min(780px, 94vw);
+      padding: 42px 48px 34px;
+      border-radius: 18px;
+      background: rgba(17, 24, 39, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 22px 70px rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+    }
+
+    .preload-title{
+      font-size: 13px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 12px;
+    }
+
+    .preload-percent{
+      font-size: 72px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .preload-meta{
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: rgba(255,255,255,0.70);
+    }
+    .preload-meta b{
+      color: rgba(255,255,255,0.90);
+      font-weight: 650;
+    }
+
+    .preload-barTrack{
+      margin-top: 18px;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .preload-barFill{
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+      transition: width 0.08s linear;
+    }
+
+    /* Large logo OUTSIDE the card */
+    #preloadLogo{
+      width: 280px;
+      height: 280px;
+      object-fit: contain;
+      filter: drop-shadow(0 18px 34px rgba(0,0,0,0.55));
+      transform-origin: 50% 50%;
+      animation: preloadSwirl 12s linear infinite;
+    }
+
+    @keyframes preloadSwirl{
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      #preloadLogo{ animation: none; }
+      .preload-barFill{ transition: none; }
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- =========================
+       PRELOADER OVERLAY (runs 25 seconds)
+       Requires: dashboard.png + investanza.png next to this HTML.
+       ========================= -->
+  <div id="preloadOverlay" role="status" aria-label="Loading dashboard">
+    <div class="preload-stack">
+      <div class="preload-card">
+        <div class="preload-title">Initializing Trading Workspace</div>
+
+        <div class="preload-percent" id="preloadPercent">0%</div>
+
+        <div class="preload-meta">
+          <span>Remaining: <b id="preloadRemain">00:25</b></span>
+          <span>Market feeds: <b id="preloadFeed">Syncing</b></span>
+        </div>
+
+        <div class="preload-barTrack" aria-hidden="true">
+          <div class="preload-barFill" id="preloadBarFill"></div>
+        </div>
+      </div>
+
+      <!-- Logo OUTSIDE the card -->
+      <img id="preloadLogo" src="investanza.png" alt="Investanza logo" />
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const overlay   = document.getElementById('preloadOverlay');
+      const percentEl = document.getElementById('preloadPercent');
+      const remainEl  = document.getElementById('preloadRemain');
+      const feedEl    = document.getElementById('preloadFeed');
+      const barEl     = document.getElementById('preloadBarFill');
+
+      if (!overlay || !percentEl || !remainEl || !feedEl || !barEl) return;
+
+      const DURATION_MS = 25000;
+      let start = null;
+
+      const fmtMMSS = (totalSeconds) => {
+        const m = Math.floor(totalSeconds / 60);
+        const s = totalSeconds % 60;
+        return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+      };
+
+      function step(ts){
+        if (!start) start = ts;
+
+        const elapsed = ts - start;
+        const p = Math.min(elapsed / DURATION_MS, 1); // 0 -> 1
+
+        const pct = Math.floor(p * 100);
+        percentEl.textContent = pct + "%";
+        barEl.style.width = pct + "%";
+
+        const secondsLeft = Math.max(0, Math.ceil((DURATION_MS - elapsed) / 1000));
+        remainEl.textContent = fmtMMSS(secondsLeft);
+
+        if (pct < 35) feedEl.textContent = "Syncing";
+        else if (pct < 75) feedEl.textContent = "Validating";
+        else feedEl.textContent = "Ready";
+
+        // Key line: BLACK -> IMAGE over 25s
+        overlay.style.setProperty("--preloadCoverOpacity", (1 - p).toFixed(4));
+
+        if (p < 1) requestAnimationFrame(step);
+        else overlay.remove();
+      }
+
+      requestAnimationFrame(step);
+    })();
+  </script>
+
   <!-- TradingView Ticker Script (include once) -->
   <script type="module" src="https://widgets.tradingview-widget.com/w/en/tv-ticker-tag.js"></script>
 
@@ -761,7 +972,6 @@
         <div class="dock-tooltip">News</div>
       </button>
 
-      <!-- Fire icon for Heatmap -->
       <button class="dock-btn" data-panel="heatmap" title="Forex Heatmap" aria-label="Open forex heatmap panel">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M12 2s2.8 3 2.8 6.2c0 1.4-.6 2.6-1.4 3.5-.9 1-2 1.9-2 3.6 0 1.7 1.3 3 3 3 2.6 0 4.6-2.2 4.6-5.1 0-2.2-1.1-4-2.5-5.6"/>
@@ -779,6 +989,9 @@
         </svg>
         <div class="dock-tooltip">Refresh</div>
       </button>
+
+      <!-- Attached logo below Refresh button -->
+      <img class="dock-brand" src="investanza_50x50.png" alt="Investanza" />
     </div>
   </aside>
 
@@ -887,41 +1100,32 @@
         const btn = $('#themeToggle');
         if (!btn) return;
 
-        // Keep identical markup structure (icon + tooltip) to avoid design changes.
         btn.innerHTML = theme === 'dark'
           ? '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><div class="dock-tooltip">Theme</div>'
           : '<svg class="icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><div class="dock-tooltip">Theme</div>';
       }
 
-      /* ===== Zoom compensation (keeps session time text stable under browser zoom) ===== */
       function syncZoomComp() {
         const dpr = window.devicePixelRatio || 1;
         const comp = Math.max(0.70, Math.min(1.15, 1 / dpr));
         document.documentElement.style.setProperty('--zoom-comp', comp.toFixed(3));
       }
 
-      /* ===================== News font scale ===================== */
       let newsFontScale = Number(safeStorageGet('newsFontScale', '1'));
       if (!Number.isFinite(newsFontScale) || newsFontScale <= 0) newsFontScale = 1;
 
       function applyNewsFontScale() {
-        // Keep within sensible bounds to prevent layout breakage.
         newsFontScale = Math.max(0.7, Math.min(1.8, Number(newsFontScale) || 1));
         document.documentElement.style.setProperty('--news-font-scale', String(newsFontScale));
         safeStorageSet('newsFontScale', String(newsFontScale));
       }
       applyNewsFontScale();
 
-      /* ===================== Charts ===================== */
-      // Lazy-load removed by request: charts are injected immediately.
-      // Keep chartIO only for safety in case older code paths reference it.
       let chartIO = null;
 
       function setupChartLazyLoad() {
-        // Lazy-load removed: inject every chart widget immediately (no viewport gating).
-        // Keep the same function name so the rest of the app doesn't change.
         if (chartIO) {
-          try { chartIO.disconnect(); } catch { /* ignore */ }
+          try { chartIO.disconnect(); } catch {}
         }
         chartIO = null;
 
@@ -1034,7 +1238,6 @@
         setupChartLazyLoad();
       }
 
-      /* ===================== Panel Management ===================== */
       const panel = $('#sidePanel');
       const panelTitle = $('#panelTitle');
       const panelBody = $('#panelBody');
@@ -1107,7 +1310,6 @@
           return;
         }
 
-        // Cleanup previous panel side-effects (intervals/fetches) before switching.
         cleanupPanelSideEffects();
 
         setPanelOpen(true);
@@ -1124,7 +1326,6 @@
         if (key === 'heatmap') initHeatmapPanel();
       }
 
-      /* ===================== Panel Side-Effect Cleanup ===================== */
       let calendarSessionsInterval = 0;
       let calendarClockInterval = 0;
 
@@ -1132,22 +1333,19 @@
       let newsAbortController = null;
 
       function cleanupPanelSideEffects() {
-        // Calendar cleanup
         if (calendarSessionsInterval) clearInterval(calendarSessionsInterval);
         if (calendarClockInterval) clearInterval(calendarClockInterval);
         calendarSessionsInterval = 0;
         calendarClockInterval = 0;
 
-        // News cleanup
         if (newsIntervalId) clearInterval(newsIntervalId);
         newsIntervalId = 0;
         if (newsAbortController) {
-          try { newsAbortController.abort(); } catch { /* ignore */ }
+          try { newsAbortController.abort(); } catch {}
         }
         newsAbortController = null;
       }
 
-      /* ===================== Dock bindings ===================== */
       function toggleTheme() {
         const current = getTheme();
         const next = current === 'dark' ? 'light' : 'dark';
@@ -1198,7 +1396,6 @@
         updateThemeIcon();
       }
 
-      /* ===================== Calendar panel ===================== */
       let fxVerifyScriptLoaded = false;
       let fxVerifyScriptLoading = false;
 
@@ -1385,7 +1582,6 @@
         });
       }
 
-      /* ===================== News panel ===================== */
       function initNewsPanel() {
         const FEEDS = [
           { name: 'News', url: 'https://investinglive.com/feed/news/' },
@@ -1413,13 +1609,11 @@
         }
 
         async function fetchText(url, { signal } = {}) {
-          // Direct fetch first. If blocked by CORS, fallback to a public CORS relay.
           try {
             const res = await fetch(url, { cache: 'no-store', signal });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return await res.text();
           } catch (e) {
-            // If aborted, propagate.
             if (signal && signal.aborted) throw e;
             const relay = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
             const res2 = await fetch(relay, { cache: 'no-store', signal });
@@ -1486,9 +1680,8 @@
           const status = $('#newsStatus');
           if (!status) return;
 
-          // Abort any in-flight request to avoid races.
           if (newsAbortController) {
-            try { newsAbortController.abort(); } catch { /* ignore */ }
+            try { newsAbortController.abort(); } catch {}
           }
           newsAbortController = new AbortController();
 
@@ -1517,7 +1710,6 @@
         newsIntervalId = setInterval(loadAndRender, 60000);
       }
 
-      /* ===================== Heatmap panel ===================== */
       function initHeatmapPanel() {
         const theme = getTheme();
         const container = $('#heatmapWidget');
@@ -1549,7 +1741,6 @@
         container.appendChild(wrap);
       }
 
-      /* ===================== Modals ===================== */
       function injectWidget(containerId, symbol, interval, theme) {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -1623,7 +1814,6 @@
         if (el) el.textContent = '';
       }
 
-      // Backdrop click to close (no visual changes).
       function bindModalClose() {
         const chartModal = $('#chartModal');
         const tfModal = $('#tfChartModal');
@@ -1640,13 +1830,11 @@
         });
       }
 
-      // Expose for existing inline compatibility if needed.
       window.openPopup = openPopup;
       window.closePopup = closePopup;
       window.openTfPopup = openTfPopup;
       window.closeTfPopup = closeTfPopup;
 
-      /* ===================== Keyboard shortcuts ===================== */
       function bindKeyboard() {
         document.addEventListener('keydown', (e) => {
           const tag = (e.target && e.target.tagName) ? e.target.tagName : '';
@@ -1674,7 +1862,6 @@
         }, { passive: true });
       }
 
-      /* ===================== Topbar Auto-fit ===================== */
       let fitRaf = 0;
 
       function autoFitTickersNow() {
@@ -1718,8 +1905,6 @@
         const tickerStrip = $('#tickerStrip');
         if (!tickerStrip) return;
 
-        // NOTE: tv-ticker-tag renders in Shadow DOM; e.target is often inside the shadow tree.
-        // Use composedPath() to reliably find the host element.
         tickerStrip.addEventListener('click', (e) => {
           const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
           const host = path.find(n => n && n.tagName === 'TV-TICKER-TAG')
@@ -1730,7 +1915,6 @@
           if (sym) scrollToSymbol(sym);
         }, { passive: true });
 
-        // Resize-based fitting
         const viewport = $('#tickerViewport');
         if (window.ResizeObserver && viewport) {
           const ro = new ResizeObserver(() => scheduleTickerFit());
@@ -1739,7 +1923,6 @@
           window.addEventListener('resize', scheduleTickerFit, { passive: true });
         }
 
-        // MutationObserver: tv-ticker-tag updates size after hydration.
         if (window.MutationObserver && tickerStrip) {
           const mo = new MutationObserver(() => scheduleTickerFit());
           mo.observe(tickerStrip, { childList: true, subtree: true, attributes: true });
@@ -1754,8 +1937,6 @@
         const anchor = document.getElementById(`anchor-${safeIdFromSymbol(symbol)}`);
         if (!anchor) return;
 
-        // The anchor is absolutely positioned (top:0), so offsetTop is not usable.
-        // Use bounding boxes to compute the correct scroll target.
         const mainRect = main.getBoundingClientRect();
         const anchorRect = anchor.getBoundingClientRect();
         const targetTop = main.scrollTop + (anchorRect.top - mainRect.top);
@@ -1763,7 +1944,6 @@
         main.scrollTo({ top: Math.max(0, targetTop - 6), behavior: 'smooth' });
       }
 
-      /* ===================== Init ===================== */
       function init() {
         syncZoomComp();
         window.addEventListener('resize', syncZoomComp, { passive: true });
@@ -1778,7 +1958,6 @@
 
         window.addEventListener('load', () => startTickerAutoFit(), { once: true });
 
-        // Minor robustness: refit on tab restore.
         document.addEventListener('visibilitychange', () => {
           if (!document.hidden) startTickerAutoFit();
         }, { passive: true });
